@@ -1,0 +1,35 @@
+{
+  "openclaw_version": "2.5-PRO-MASTER",
+  "engine_mode": "TOP_TIER_HIGH_AGENCY",
+  "policy_governor": {
+    "akos_enforced": true,
+    "max_actions_per_second": 1000,
+    "max_retry_attempts": 3,
+    "allowed_action_types": [
+      "click",
+      "type",
+      "scroll",
+      "navigate",
+      "inspect_dom",
+      "capture_screenshot",
+      "hover",
+      "drag_and_drop",
+      "shortcut",
+      "key_press",
+      "ocr_read_screen",
+      "vision_sample"
+    ]
+  },
+  "action_defaults": {
+    "mouse_movement_curve": "BEZIER_SMOOTH",
+    "typing_delay_ms": 2,
+    "viewport_dimensions": [1920, 1080],
+    "screenshot_compression_quality": 95,
+    "sha256_audit_logging": true
+  },
+  "mcp_gateway": {
+    "enabled": true,
+    "port": 8088,
+    "protocol": "JSON-RPC-2.0"
+  }
+}
