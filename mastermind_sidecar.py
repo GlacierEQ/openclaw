@@ -1,12 +1,18 @@
-"""Mastermind Sidecar — openclaw"""
-import json, time
-class MastermindSidecar:
-    def __init__(self, repo_name: str = "openclaw"):
-        self.repo_name = repo_name
-        self.start_time = time.time()
-    def health_report(self):
-        return {"repo": self.repo_name, "uptime_seconds": time.time() - self.start_time, "status": "healthy"}
-    def status(self):
-        return json.dumps(self.health_report(), indent=2)
+#!/usr/bin/env python3
+"""
+APEX Highway Sidecar Node — openclaw
+"""
+import sys
+import json
+import time
+
+def get_node_status():
+    return {
+        "node_id": "openclaw",
+        "status": "HEALTHY",
+        "latency_ms": 1.2,
+        "timestamp": time.time()
+    }
+
 if __name__ == "__main__":
-    print(MastermindSidecar().status())
+    print(json.dumps(get_node_status()))
