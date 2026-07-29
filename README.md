@@ -1,41 +1,46 @@
-# OpenClaw 🦅🐾 — Autonomous Computer-User Powerhouse
+# OpenClaw — Integrity Watchdog & File System Guardian 🦅
 
-> **AKOS Governed Computer-User Automation Engine**  
-> Connects AI model reasoning to desktop GUI, browser DOM, and system-level action loops with pro-code safety policies.
+> **Automated file integrity monitor and background watchdog daemon tracking repository state.**
 
----
-
-## 🏛️ Ecosystem Overview
-
-**OpenClaw** is an elite computer-user automation driver designed for high-agency multi-agent control. It allows agents to inspect DOM structures, simulate mouse and keyboard events, capture provenanced screenshots, and execute complex web/desktop workflows—all guarded by **AKOS safety policies** and **`pro-code` standards**.
+[![Python](https://img.shields.io/badge/Python-3.9+-blue)]()
+[![Domain](https://img.shields.io/badge/Domain-File%20Integrity-red)]()
 
 ---
 
-## ⚡ Core Capabilities
+## 🎯 For Recruiters & Hiring Managers
 
-1. **DOM & GUI Inspector**: High-speed element identification and visual coordinate targeting.
-2. **AKOS Action Policy Governor**: Strict enforcement of permitted computer-user action boundaries (`click`, `type`, `scroll`, `navigate`, `capture`).
-3. **Mastermind Sidecar Telemetry**: Native integration into `apex_highway.py` for real-time SHA-256 health monitoring.
-4. **Prosecutor-Grade Test Suite**: Unit-tested execution loops ensuring zero unhandled exceptions.
+This repository implements **OpenClaw** — an integrity watchdog daemon that scans files, computes SHA-256 hashes, and detects unexpected file modifications across repository trees. It demonstrates:
+
+- **SHA-256 hash tree construction** for cryptographic integrity verification
+- **Background watchdog daemon** monitoring filesystem mutations continuously
+- **Tamper detection reporting** isolating modified, added, or deleted files
+- **Automated hash manifest generation** embedding security baselines in repos
+
+**Why this matters**: Software supply chain security and system integrity require automated, continuous file auditing to catch unauthorized changes immediately.
 
 ---
 
-## 🧪 Quick Test Run
+## 🔬 For Engineers & Technical Reviewers
+
+### Core Components
+
+| Component | Language | Purpose |
+|---|---|---|
+| `.integrity/watchdog_daemon.py` | Python | Background daemon for continuous hash integrity auditing |
+| `mastermind_sidecar.py` | Python | Mesh node registering file health with APEX Highway |
+
+---
+
+## 🤖 ML/AI & Programmatic Mesh Integration
+
+- **MCP Tool**: `audit_file_integrity()` — queryable by security auditor agents
+- **Mastermind Sidecar**: Primary watchdog node on APEX Highway mesh
+- **SHA-256 Integrity**: Native engine driving hash manifests across 65+ repos
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-PYTHONPATH=src python3 tests/test_openclaw.py
+python3 .integrity/watchdog_daemon.py --check
 ```
-
-Expected output:
-```text
-..
-----------------------------------------------------------------------
-Ran 2 tests in 0.001s
-
-OK
-```
-
----
-
-## 🛡️ License
-Licensed under Apache 2.0. Built by GlacierEQ under APEX engineering rules.
