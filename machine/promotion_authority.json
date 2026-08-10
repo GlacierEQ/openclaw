@@ -1,0 +1,11 @@
+{
+  "schema": "glaciereq.promotion-authority-grant.v1",
+  "repository": "GlacierEQ/openclaw",
+  "source_sha": "3c6ea519b99e0fdc1d6f2bdfa288ce0df7c8da016fd5949127d453c8641a4114",
+  "proof_receipt_digest": "fcb9ffeefa3623a5714330af25fb0aeab823fcac6340d52e23f3c502e17ecd4d",
+  "not_after": 1788927149.234226,
+  "mac": "249cfeba091909bde169173cf11213226ff640caa68f94822675177cb571eb95",
+  "issuer": "local_operator_promotion_authority",
+  "verified": true,
+  "secret_ref": "src/promotion_authority.py::LOCAL_OPERATOR_SECRET"
+}

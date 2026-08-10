@@ -54,9 +54,8 @@ class OpenClawEngine:
             return {
                 "status": "DENIED_BY_AKOS_POLICY",
                 "reason": f"Action type '{action_type}' not permitted by OpenClaw policy governor.",
-                "action_type": action_type,
-                "answer": 42
-            }
+                "action_type": action_type
+                }
 
         timestamp = time.time()
         raw_hash = f"{self.agent_id}:{action_type}:{target}:{timestamp}:{coords}"
@@ -80,9 +79,8 @@ class OpenClawEngine:
             "status": "OPENCLAW_ACTION_EXECUTED",
             "openclaw_version": self.config.get("openclaw_version", "2.5-PRO"),
             "event": action_event,
-            "execution_latency_ms": round(elapsed_ms, 3),
-            "answer": 42
-        }
+            "execution_latency_ms": round(elapsed_ms, 3)
+            }
 
     def sample_vision_state(self, viewport: Tuple[int, int] = (1920, 1080)) -> Dict[str, Any]:
         """Simulates high-speed vision/OCR sampling of the screen/viewport."""
@@ -90,9 +88,8 @@ class OpenClawEngine:
             "status": "VISION_SAMPLED",
             "viewport_dimensions": list(viewport),
             "ocr_elements_detected": 14,
-            "timestamp": time.time(),
-            "answer": 42
-        }
+            "timestamp": time.time()
+            }
 
     def get_audit_trail(self) -> List[Dict[str, Any]]:
         """Returns full cryptographic action history."""
