@@ -1,23 +1,17 @@
 {
-  "openclaw_version": "2.5-PRO-MASTER",
-  "engine_mode": "TOP_TIER_HIGH_AGENCY",
+  "name": "openclaw",
+  "description": "OpenClaw — File Integrity Watchdog & Action Governor",
+  "version": "3.0.0",
+  "openclaw_version": "3.0.0-PRODUCTION",
+  "engine_mode": "PRODUCTION",
   "policy_governor": {
     "akos_enforced": true,
     "max_actions_per_second": 1000,
     "max_retry_attempts": 3,
     "allowed_action_types": [
-      "click",
-      "type",
-      "scroll",
-      "navigate",
-      "inspect_dom",
-      "capture_screenshot",
-      "hover",
-      "drag_and_drop",
-      "shortcut",
-      "key_press",
-      "ocr_read_screen",
-      "vision_sample"
+      "click", "type", "scroll", "navigate", "inspect_dom",
+      "capture_screenshot", "hover", "drag_and_drop", "shortcut",
+      "key_press", "ocr_read_screen", "vision_sample"
     ]
   },
   "action_defaults": {
@@ -27,9 +21,18 @@
     "screenshot_compression_quality": 95,
     "sha256_audit_logging": true
   },
-  "mcp_gateway": {
+  "watchdog": {
+    "poll_interval_seconds": 2.0,
+    "exclude_patterns": [".git", "__pycache__", "node_modules", ".DS_Store"],
+    "state_file": ".openclaw/watchdog_state.json",
+    "event_log": ".openclaw/watchdog_events.jsonl"
+  },
+  "api": {
+    "host": "0.0.0.0",
+    "port": 8088
+  },
+  "mcp": {
     "enabled": true,
-    "port": 8088,
-    "protocol": "JSON-RPC-2.0"
+    "port": 8089
   }
 }

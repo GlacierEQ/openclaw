@@ -1,0 +1,229 @@
+{
+  "fingerprints": {
+    "/private/var/folders/w3/hldw78112gzbvgd2_pj1bg3h0000gn/T/tmp77olnw_w/test.txt": {
+      "path": "/private/var/folders/w3/hldw78112gzbvgd2_pj1bg3h0000gn/T/tmp77olnw_w/test.txt",
+      "sha256": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+      "size": 11,
+      "mtime": 1786489637.3247604,
+      "first_seen": 1786489637.325879,
+      "last_verified": 1786489637.325879
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/server.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/server.py",
+      "sha256": "0fecab4909c9819fed12b3b4d47d7c9d560f72cc3498298f65bbfff7e93c3558",
+      "size": 4775,
+      "mtime": 1786489652.743398,
+      "first_seen": 1786489660.077987,
+      "last_verified": 1786489660.077987
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/LICENSE": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/LICENSE",
+      "sha256": "0b564f127587706d943c3964b555cf59045c42ac2bfb24e1b6300d5ad4b4e014",
+      "size": 7832,
+      "mtime": 1786487928.959814,
+      "first_seen": 1786489660.0793128,
+      "last_verified": 1786489660.079314
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/requirements.txt": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/requirements.txt",
+      "sha256": "bc034557efb34773220aa2f9a40a8b7a149bdf321413214e5e9b4253c76f6c97",
+      "size": 61,
+      "mtime": 1786489605.6231458,
+      "first_seen": 1786489660.079865,
+      "last_verified": 1786489660.0798662
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/Dockerfile": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/Dockerfile",
+      "sha256": "e800d75e4638b30ba7b70ea3e9cdc07c2dc85d71ba82253571197b5bcc169d14",
+      "size": 170,
+      "mtime": 1786489605.1036868,
+      "first_seen": 1786489660.080321,
+      "last_verified": 1786489660.080321
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/OPENCLAW_CONFIG.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/OPENCLAW_CONFIG.json",
+      "sha256": "df20672ed6fe2097c165cb22aeacd141d518fd264e2d6f32f15424ea3ccd8a68",
+      "size": 1091,
+      "mtime": 1786489609.3600557,
+      "first_seen": 1786489660.080756,
+      "last_verified": 1786489660.080757
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/README.md": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/README.md",
+      "sha256": "24362b0235f553f9a4df2ccc26f0cdf5331c2e802f2ee05c8635f8ad98c867d2",
+      "size": 3077,
+      "mtime": 1786489621.4118264,
+      "first_seen": 1786489660.081402,
+      "last_verified": 1786489660.0814028
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/cli.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/cli.py",
+      "sha256": "8fa19b5257454f5fb119ebe580ee41eddcebb79111365e5f53586f0aeb17563a",
+      "size": 3215,
+      "mtime": 1786489651.4515612,
+      "first_seen": 1786489660.081704,
+      "last_verified": 1786489660.0817049
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/LICENSE_NOTICE.md": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/LICENSE_NOTICE.md",
+      "sha256": "0010cc14024e46daea551cc294440adaf03a1e6611c3a63d3a6d44243fee3461",
+      "size": 390,
+      "mtime": 1786487928.9602814,
+      "first_seen": 1786489660.083148,
+      "last_verified": 1786489660.083148
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/mastermind_sidecar.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/mastermind_sidecar.py",
+      "sha256": "0aa3e0f7bbd9d08f9625d915ae165704cdac3a2686bf11d5a3794225106b3577",
+      "size": 337,
+      "mtime": 1786487928.9729161,
+      "first_seen": 1786489660.086099,
+      "last_verified": 1786489660.0860999
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/mcp_server.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/mcp_server.py",
+      "sha256": "7e9514537b1948c51eeb95755ed24090d8ec0836fbbcd74d372bdd1f4a4151dc",
+      "size": 8152,
+      "mtime": 1786489653.8947656,
+      "first_seen": 1786489660.086462,
+      "last_verified": 1786489660.086462
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_adversarial.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_adversarial.py",
+      "sha256": "3c5fc7c499fc8dcb35d0b9f5867ebbce4d7bb34cb1d7ab4270e927b673b5d077",
+      "size": 6118,
+      "mtime": 1786487928.9757128,
+      "first_seen": 1786489660.088214,
+      "last_verified": 1786489660.088215
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_openclaw.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_openclaw.py",
+      "sha256": "ae69410ea6dcc03a8b56330bda4ae76f3c7fa0160cbfaded3d05af6d543465b3",
+      "size": 998,
+      "mtime": 1786487928.9760053,
+      "first_seen": 1786489660.088743,
+      "last_verified": 1786489660.088744
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_promotion_authority.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_promotion_authority.py",
+      "sha256": "e2c7b538a82eb05468ede67ddf902c5c3715042fd9790dd0f3bbf9b18a951477",
+      "size": 1564,
+      "mtime": 1786487928.9763908,
+      "first_seen": 1786489660.0891619,
+      "last_verified": 1786489660.0891619
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_comprehensive.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/tests/test_comprehensive.py",
+      "sha256": "9998960327557a7c02e1ba018b87e4cfa464ed3d468b49cb33e95f2f3b689621",
+      "size": 5245,
+      "mtime": 1786489604.2243092,
+      "first_seen": 1786489660.089844,
+      "last_verified": 1786489660.089844
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/excellence-state.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/excellence-state.json",
+      "sha256": "6572e1bfc949e6a16efaea914aa1506e950bd037d26e11c310b8c5c0e529521b",
+      "size": 5935,
+      "mtime": 1786487928.9703891,
+      "first_seen": 1786489660.091595,
+      "last_verified": 1786489660.0915961
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/promotion_authority.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/promotion_authority.json",
+      "sha256": "2c5922181377d6a2bceb42537d41fcda581bd4be3291668cc46c2a7d288c8364",
+      "size": 523,
+      "mtime": 1786487928.9716022,
+      "first_seen": 1786489660.092194,
+      "last_verified": 1786489660.092195
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/capabilities.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/capabilities.json",
+      "sha256": "d4fad9d996c6d52487ebc62c80048e050ecf45b98ef3eac46d1672883227852f",
+      "size": 35,
+      "mtime": 1786487928.9615557,
+      "first_seen": 1786489660.09266,
+      "last_verified": 1786489660.09266
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/proof_receipt.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/proof_receipt.json",
+      "sha256": "fcb9ffeefa3623a5714330af25fb0aeab823fcac6340d52e23f3c502e17ecd4d",
+      "size": 1000,
+      "mtime": 1786487928.972091,
+      "first_seen": 1786489660.093302,
+      "last_verified": 1786489660.093303
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/operability_receipt.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/operability_receipt.json",
+      "sha256": "ae3f759defc6831c20bdccb6492264bf4b24b3f75fb4fe0d17183bf918f0c54e",
+      "size": 872,
+      "mtime": 1786487928.9711928,
+      "first_seen": 1786489660.093809,
+      "last_verified": 1786489660.0938098
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/excellence-scores.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/excellence-scores.json",
+      "sha256": "bb3252d4bbf6333e52150bf58fae9cae9ad9e74aaba597600292a68608f55ece",
+      "size": 372,
+      "mtime": 1786487928.962183,
+      "first_seen": 1786489660.094286,
+      "last_verified": 1786489660.0942872
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/target-contract.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/machine/target-contract.json",
+      "sha256": "65416f4de1dc7d104900417c55988126b384c3f5a7909132e35e2aac8091841f",
+      "size": 453,
+      "mtime": 1786487928.9725313,
+      "first_seen": 1786489660.09477,
+      "last_verified": 1786489660.094771
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/scripts/operate.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/scripts/operate.py",
+      "sha256": "c70fca79e6713f26de9b8b83090dac391dde2d879be50c378099a9c3315dd7ac",
+      "size": 23401,
+      "mtime": 1786487928.9738057,
+      "first_seen": 1786489660.098353,
+      "last_verified": 1786489660.0983539
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/.integrity/watchdog_daemon.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/.integrity/watchdog_daemon.py",
+      "sha256": "6fef8ece3d88f123f88dc0d473b60034acecc3c528ec4dd3774bc75b2766f666",
+      "size": 10447,
+      "mtime": 1786489555.622012,
+      "first_seen": 1786489660.103648,
+      "last_verified": 1786489660.1036491
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/.integrity/file_hashes.json": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/.integrity/file_hashes.json",
+      "sha256": "3a02f19517a3233ae97ea08dcc905c72cee4c35b929b732399f4adb039be8e61",
+      "size": 506,
+      "mtime": 1786487928.958782,
+      "first_seen": 1786489660.106178,
+      "last_verified": 1786489660.106179
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/__init__.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/__init__.py",
+      "sha256": "b73a5ead5f6e89f65d2f112bd2fd2056e46b60eba2548fbc596561b47cb6840b",
+      "size": 16,
+      "mtime": 1786487928.97436,
+      "first_seen": 1786489660.107771,
+      "last_verified": 1786489660.1077719
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/promotion_authority.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/promotion_authority.py",
+      "sha256": "be7095415829896a1bf6672192682c01211b0c7962bc974ddd6ab13ee791acb8",
+      "size": 4087,
+      "mtime": 1786487928.9752328,
+      "first_seen": 1786489660.110371,
+      "last_verified": 1786489660.110372
+    },
+    "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/openclaw.py": {
+      "path": "/Users/kcbflux/GlacierEQ_Swarm/job-app/repos/openclaw/src/openclaw.py",
+      "sha256": "d2c120e445bb679524060f2cbfca2a3cc33eb721bd110f207c65bf4f52b625ff",
+      "size": 3710,
+      "mtime": 1786487928.9747944,
+      "first_seen": 1786489660.111725,
+      "last_verified": 1786489660.111726
+    }
+  },
+  "last_scan": 1786489660.113085
+}
