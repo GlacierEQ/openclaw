@@ -51,10 +51,58 @@ class FreeTierAgentHub:
         """Load all known free tier agents — LOCAL FIRST for heavy tokens."""
         self.agents = {
             # ================================================================
-            # LOCAL MODELS (Unlimited tokens, no API limits)
+            # GLACIEREQ CUSTOM MODELS (Priority - Heavy Duty)
             # ================================================================
-            "ollama-stealth-team": AgentConfig(
-                name="Ollama Stealth Team",
+            "omni-agent": AgentConfig(
+                name="Omni-Agent",
+                tier=AgentTier.LOCAL,
+                provider="glaciereq",
+                model="omni-agent:latest",
+                endpoint="http://localhost:11434/api/chat",
+                api_key_env="",
+                cost_per_1k_tokens=0.0,
+                max_tokens=32768,
+                capabilities=["code", "heavy", "unlimited", "all-purpose", "glaciereq"],
+            ),
+            "megamind": AgentConfig(
+                name="MegaMind",
+                tier=AgentTier.LOCAL,
+                provider="glaciereq",
+                model="megamind:latest",
+                endpoint="http://localhost:11434/api/chat",
+                api_key_env="",
+                cost_per_1k_tokens=0.0,
+                max_tokens=32768,
+                capabilities=["code", "heavy", "unlimited", "reasoning", "strategy", "glaciereq"],
+            ),
+            "stealth-claw": AgentConfig(
+                name="Stealth-Claw",
+                tier=AgentTier.LOCAL,
+                provider="glaciereq",
+                model="stealth-claw:latest",
+                endpoint="http://localhost:11434/api/chat",
+                api_key_env="",
+                cost_per_1k_tokens=0.0,
+                max_tokens=32768,
+                capabilities=["code", "heavy", "unlimited", "precision", "security", "glaciereq"],
+            ),
+            "stealth-microwave": AgentConfig(
+                name="Stealth-Microwave",
+                tier=AgentTier.LOCAL,
+                provider="glaciereq",
+                model="stealth-microwave:latest",
+                endpoint="http://localhost:11434/api/chat",
+                api_key_env="",
+                cost_per_1k_tokens=0.0,
+                max_tokens=32768,
+                capabilities=["code", "heavy", "unlimited", "optimization", "glaciereq"],
+            ),
+
+            # ================================================================
+            # STEALTH SERIES (Local - Unlimited)
+            # ================================================================
+            "stealth-team": AgentConfig(
+                name="Stealth Team",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-team:latest",
@@ -62,10 +110,10 @@ class FreeTierAgentHub:
                 api_key_env="",
                 cost_per_1k_tokens=0.0,
                 max_tokens=32768,
-                capabilities=["code", "heavy", "unlimited", "privacy"],
+                capabilities=["code", "heavy", "unlimited", "team"],
             ),
-            "ollama-stealth-supernova": AgentConfig(
-                name="Ollama Stealth Supernova",
+            "stealth-supernova": AgentConfig(
+                name="Stealth Supernova",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-supernova:latest",
@@ -75,19 +123,8 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "intelligence"],
             ),
-            "ollama-stealth-microwave": AgentConfig(
-                name="Ollama Stealth Microwave",
-                tier=AgentTier.LOCAL,
-                provider="ollama",
-                model="stealth-microwave:latest",
-                endpoint="http://localhost:11434/api/chat",
-                api_key_env="",
-                cost_per_1k_tokens=0.0,
-                max_tokens=32768,
-                capabilities=["code", "heavy", "unlimited", "optimization"],
-            ),
-            "ollama-stealth-sonic": AgentConfig(
-                name="Ollama Stealth Sonic",
+            "stealth-sonic": AgentConfig(
+                name="Stealth Sonic",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-sonic:latest",
@@ -97,8 +134,8 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "speed"],
             ),
-            "ollama-stealth-sherlock": AgentConfig(
-                name="Ollama Stealth Sherlock",
+            "stealth-sherlock": AgentConfig(
+                name="Stealth Sherlock",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-sherlock:latest",
@@ -108,8 +145,8 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "investigation"],
             ),
-            "ollama-stealth-viper": AgentConfig(
-                name="Ollama Stealth Viper",
+            "stealth-viper": AgentConfig(
+                name="Stealth Viper",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-viper:latest",
@@ -119,8 +156,8 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "precision"],
             ),
-            "ollama-stealth-polaris": AgentConfig(
-                name="Ollama Stealth Polaris",
+            "stealth-polaris": AgentConfig(
+                name="Stealth Polaris",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="stealth-polaris:latest",
@@ -130,19 +167,23 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "navigation"],
             ),
-            "ollama-stealth-wraith": AgentConfig(
-                name="Ollama Stealth Wraith",
+            "stealth-specter": AgentConfig(
+                name="Stealth Specter",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
-                model="stealth-wraith:latest",
+                model="stealth-specter:latest",
                 endpoint="http://localhost:11434/api/chat",
                 api_key_env="",
                 cost_per_1k_tokens=0.0,
                 max_tokens=32768,
-                capabilities=["code", "heavy", "unlimited", "shadow"],
+                capabilities=["code", "heavy", "unlimited", "stealth"],
             ),
-            "ollama-llama3.2": AgentConfig(
-                name="Ollama Llama 3.2 1B",
+
+            # ================================================================
+            # BASE MODELS (Local - Lightweight)
+            # ================================================================
+            "llama3.2-1b": AgentConfig(
+                name="Llama 3.2 1B",
                 tier=AgentTier.LOCAL,
                 provider="ollama",
                 model="llama3.2:1b",
@@ -386,19 +427,33 @@ class FreeTierAgentHub:
             return self._query_cloud(agent, prompt, system)
 
     def route_query(self, prompt: str, prefer_local: bool = True) -> Dict:
-        """Route query to best available agent — LOCAL FIRST for heavy tokens."""
-        # Priority: Local models first (unlimited tokens)
+        """Route query to best available agent — GLACIEREQ FIRST for heavy tokens."""
+        # Priority: GlacierEQ custom models first
+        glaciereq_agents = [
+            name for name, agent in self.agents.items()
+            if agent.status == "verified" and agent.provider == "glaciereq"
+        ]
+
+        if glaciereq_agents:
+            # Prefer omni-agent for general, megamind for reasoning, stealth-claw for code
+            if any(word in prompt.lower() for word in ["think", "reason", "plan", "strategy"]):
+                if "megamind" in glaciereq_agents:
+                    return self.query("megamind", prompt)
+            elif any(word in prompt.lower() for word in ["code", "write", "function", "class", "debug"]):
+                if "stealth-claw" in glaciereq_agents:
+                    return self.query("stealth-claw", prompt)
+            elif any(word in prompt.lower() for word in ["optim", "fast", "speed"]):
+                if "stealth-microwave" in glaciereq_agents:
+                    return self.query("stealth-microwave", prompt)
+            return self.query(glaciereq_agents[0], prompt)
+
+        # Fallback to other local models
         local_agents = [
             name for name, agent in self.agents.items()
             if agent.status == "verified" and agent.tier == AgentTier.LOCAL
         ]
 
         if local_agents:
-            # Prefer stealth-team for heavy queries
-            priority = ["ollama-stealth-team", "ollama-stealth-supernova", "ollama-stealth-microwave"]
-            for name in priority:
-                if name in local_agents:
-                    return self.query(name, prompt)
             return self.query(local_agents[0], prompt)
 
         # Fallback to cloud if no local models
