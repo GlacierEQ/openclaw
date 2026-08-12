@@ -2,6 +2,7 @@
 """OpenClaw MCP Server — Model Context Protocol integration for agent ecosystems."""
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -11,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent / ".integrity"))
 from watchdog_daemon import WatchdogDaemon
 from src.openclaw import OpenClawEngine
+from src.agent_hub import FreeTierAgentHub
 
 
 class OpenClawMCPServer:
@@ -19,10 +21,12 @@ class OpenClawMCPServer:
     def __init__(self):
         self.daemon = WatchdogDaemon(watch_dirs=["."])
         self.engine = OpenClawEngine()
+        self.agent_hub = FreeTierAgentHub()
         self.tools = self._register_tools()
 
     def _register_tools(self) -> List[Dict]:
         return [
+            # === File Integrity Tools ===
             {
                 "name": "openclaw_audit_integrity",
                 "description": "Audit file integrity across monitored directories. Returns SHA-256 hash changes, additions, and deletions.",
@@ -52,6 +56,7 @@ class OpenClawMCPServer:
                     "required": ["directories"]
                 },
             },
+            # === Action Governance Tools ===
             {
                 "name": "openclaw_execute_action",
                 "description": "Execute a governed computer-user action (click, type, navigate, etc.) with cryptographic audit trail.",
@@ -76,6 +81,7 @@ class OpenClawMCPServer:
                     }
                 },
             },
+            # === Vision Tools ===
             {
                 "name": "openclaw_vision_sample",
                 "description": "Sample viewport state via OCR/vision detection.",
@@ -86,6 +92,53 @@ class OpenClawMCPServer:
                     }
                 },
             },
+            # === Free Tier Agent Hub Tools ===
+            {
+                "name": "openclaw_list_agents",
+                "description": "List all available free tier AI coding agents (Groq, Cline, Kilo, OpenCode, Aider, Continue, etc.).",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "filter": {"type": "string", "description": "Filter: 'verified', 'free', 'all'"}
+                    }
+                },
+            },
+            {
+                "name": "openclaw_test_agents",
+                "description": "Test all configured AI agents and return their status.",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            {
+                "name": "openclaw_query_agent",
+                "description": "Query a specific AI agent with a coding prompt.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "agent_name": {"type": "string", "description": "Agent name (e.g., 'groq-llama3.3', 'cline-groq', 'kilo-groq')"},
+                        "prompt": {"type": "string", "description": "The coding question or task"},
+                        "system": {"type": "string", "description": "Optional system prompt"}
+                    },
+                    "required": ["agent_name", "prompt"]
+                },
+            },
+            {
+                "name": "openclaw_route_query",
+                "description": "Automatically route a coding query to the best available free agent.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {"type": "string", "description": "The coding question or task"},
+                        "prefer_free": {"type": "boolean", "description": "Prefer free tier agents (default: true)"}
+                    },
+                    "required": ["prompt"]
+                },
+            },
+            {
+                "name": "openclaw_get_agent_report",
+                "description": "Get status report of all agents (verified, failed, untested).",
+                "inputSchema": {"type": "object", "properties": {}},
+            },
+            # === System Health ===
             {
                 "name": "openclaw_health_check",
                 "description": "Check OpenClaw service health and configuration status.",
@@ -121,6 +174,7 @@ class OpenClawMCPServer:
         return {"jsonrpc": "2.0", "id": req_id, "error": {"code": -32601, "message": f"Unknown method: {method}"}}
 
     def _call_tool(self, name: str, args: Dict) -> Dict:
+        # === File Integrity Tools ===
         if name == "openclaw_audit_integrity":
             dirs = args.get("directories")
             if dirs:
@@ -134,6 +188,7 @@ class OpenClawMCPServer:
             result = self.daemon.initial_scan()
             return {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
 
+        # === Action Governance Tools ===
         elif name == "openclaw_execute_action":
             result = self.engine.execute_action(
                 action_type=args.get("action_type", "click"),
@@ -148,18 +203,57 @@ class OpenClawMCPServer:
             history = self.engine.get_audit_trail()[-limit:]
             return {"content": [{"type": "text", "text": json.dumps(history, indent=2)}]}
 
+        # === Vision Tools ===
         elif name == "openclaw_vision_sample":
             result = self.engine.sample_vision_state(
                 viewport=tuple(args.get("viewport", [1920, 1080]))
             )
             return {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
 
+        # === Agent Hub Tools ===
+        elif name == "openclaw_list_agents":
+            filter_type = args.get("filter", "all")
+            if filter_type == "verified":
+                agents = self.agent_hub.get_verified_agents()
+            elif filter_type == "free":
+                agents = self.agent_hub.get_free_agents()
+            else:
+                agents = [a.to_dict() for a in self.agent_hub.agents.values()]
+            return {"content": [{"type": "text", "text": json.dumps({"agents": agents, "count": len(agents)}, indent=2)}]}
+
+        elif name == "openclaw_test_agents":
+            results = self.agent_hub.test_all()
+            report = self.agent_hub.get_report()
+            return {"content": [{"type": "text", "text": json.dumps({"results": results, "report": report}, indent=2)}]}
+
+        elif name == "openclaw_query_agent":
+            result = self.agent_hub.query(
+                agent_name=args.get("agent_name", ""),
+                prompt=args.get("prompt", ""),
+                system=args.get("system", "You are a coding assistant. Respond concisely."),
+            )
+            return {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
+
+        elif name == "openclaw_route_query":
+            result = self.agent_hub.route_query(
+                prompt=args.get("prompt", ""),
+                prefer_free=args.get("prefer_free", True),
+            )
+            return {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]}
+
+        elif name == "openclaw_get_agent_report":
+            report = self.agent_hub.get_report()
+            return {"content": [{"type": "text", "text": json.dumps(report, indent=2)}]}
+
+        # === System Health ===
         elif name == "openclaw_health_check":
             return {"content": [{"type": "text", "text": json.dumps({
                 "status": "healthy",
                 "version": "3.0.0",
                 "engine": self.engine.agent_id,
                 "tracked_files": len(self.daemon.fingerprints),
+                "agents_verified": sum(1 for a in self.agent_hub.agents.values() if a.status == "verified"),
+                "agents_total": len(self.agent_hub.agents),
                 "timestamp": time.time(),
             }, indent=2)}]}
 
