@@ -140,8 +140,7 @@ def cmd_agents_report(args):
 
 def cmd_mesh(args):
     """Mesh intelligence commands."""
-    from src.mesh_intelligence import MeshIntelligence, KnowledgeSource
-    from src.cloud_storage import StorageProvider
+    from src.mesh_intelligence import MeshIntelligence
     
     if args.mesh_action == "start":
         node_id = args.node_id or "kcbflux-mesh"
@@ -153,7 +152,7 @@ def cmd_mesh(args):
         
         print(f"[Mesh] Node {mesh.node_id} started")
         print(f"[Mesh] IP: {mesh.node.ip_address}:{mesh.node.port}")
-        print(f"[Mesh] Role: {mesh.node.role.value}")
+        print(f"[Mesh] Role: {mesh.node.role}")
         print(f"[Mesh] Capabilities: {mesh.node.capability.specialties}")
         print()
         print("Press Ctrl+C to stop")
@@ -189,7 +188,7 @@ def cmd_mesh(args):
             print(f"[Mesh] Key not found: {args.key}")
     
     elif args.mesh_action == "cloud":
-        from src.cloud_storage import create_cloud_manager
+        from src.cloud_storage import create_cloud_manager, StorageProvider
         
         manager = create_cloud_manager()
         
