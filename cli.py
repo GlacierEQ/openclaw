@@ -138,6 +138,87 @@ def cmd_agents_report(args):
     print(json.dumps(report, indent=2))
 
 
+def cmd_mesh(args):
+    """Mesh intelligence commands."""
+    from src.mesh_intelligence import MeshIntelligence, KnowledgeSource
+    from src.cloud_storage import StorageProvider
+    
+    if args.mesh_action == "start":
+        node_id = args.node_id or "kcbflux-mesh"
+        mesh = MeshIntelligence(node_id)
+        mesh.start()
+        
+        if args.port:
+            mesh.node.port = args.port
+        
+        print(f"[Mesh] Node {mesh.node_id} started")
+        print(f"[Mesh] IP: {mesh.node.ip_address}:{mesh.node.port}")
+        print(f"[Mesh] Role: {mesh.node.role.value}")
+        print(f"[Mesh] Capabilities: {mesh.node.capability.specialties}")
+        print()
+        print("Press Ctrl+C to stop")
+        
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            mesh.stop()
+    
+    elif args.mesh_action == "status":
+        node_id = args.node_id or "kcbflux-mesh"
+        mesh = MeshIntelligence(node_id)
+        print(json.dumps(mesh.get_status(), indent=2))
+    
+    elif args.mesh_action == "store":
+        mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
+        key = args.key
+        value = json.loads(args.value) if args.value else {}
+        tags = args.tags.split(",") if args.tags else []
+        
+        mesh.store_knowledge(key, value, tags)
+        print(f"[Mesh] Stored: {key}")
+        print(f"[Mesh] Value: {value}")
+    
+    elif args.mesh_action == "get":
+        mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
+        value = mesh.get_knowledge(args.key)
+        
+        if value:
+            print(f"[Mesh] {args.key}: {json.dumps(value, indent=2)}")
+        else:
+            print(f"[Mesh] Key not found: {args.key}")
+    
+    elif args.mesh_action == "cloud":
+        from src.cloud_storage import create_cloud_manager
+        
+        manager = create_cloud_manager()
+        
+        if args.cloud_action == "add":
+            if args.provider == "dropbox":
+                manager.add_provider(StorageProvider.DROPBOX, {"access_token": args.token})
+                print("[Mesh] Dropbox added")
+            elif args.provider == "github":
+                manager.add_provider(StorageProvider.GITHUB, {"token": args.token})
+                print("[Mesh] GitHub added")
+        
+        elif args.cloud_action == "connect":
+            results = manager.connect_all()
+            for provider, success in results.items():
+                print(f"[Mesh] {provider.value}: {'✅' if success else '❌'}")
+        
+        elif args.cloud_action == "status":
+            print(json.dumps(manager.get_status(), indent=2))
+        
+        elif args.cloud_action == "sync":
+            mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
+            results = manager.sync_knowledge(mesh.knowledge)
+            for provider, success in results.items():
+                print(f"[Mesh] {provider.value}: {'✅' if success else '❌'}")
+    
+    else:
+        print("[Mesh] Unknown mesh action")
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="openclaw",
@@ -207,6 +288,60 @@ def main():
     # agents report
     p_agents_report = agents_sub.add_parser("report", help="Agent status report")
     p_agents_report.set_defaults(func=cmd_agents_report)
+
+    # === Mesh Subcommands ===
+    p_mesh = subparsers.add_parser("mesh", help="Mesh Intelligence")
+    
+    mesh_sub = p_mesh.add_subparsers(dest="mesh_action")
+    
+    # mesh start
+    p_mesh_start = mesh_sub.add_parser("start", help="Start mesh node")
+    p_mesh_start.add_argument("--node-id", help="Node ID")
+    p_mesh_start.add_argument("--port", type=int, default=8090)
+    p_mesh_start.set_defaults(func=cmd_mesh)
+    
+    # mesh status
+    p_mesh_status = mesh_sub.add_parser("status", help="Mesh status")
+    p_mesh_status.add_argument("--node-id", help="Node ID")
+    p_mesh_status.set_defaults(func=cmd_mesh)
+    
+    # mesh store
+    p_mesh_store = mesh_sub.add_parser("store", help="Store knowledge")
+    p_mesh_store.add_argument("--key", required=True, help="Knowledge key")
+    p_mesh_store.add_argument("--value", help="JSON value")
+    p_mesh_store.add_argument("--tags", help="Comma-separated tags")
+    p_mesh_store.add_argument("--node-id", help="Node ID")
+    p_mesh_store.set_defaults(func=cmd_mesh)
+    
+    # mesh get
+    p_mesh_get = mesh_sub.add_parser("get", help="Get knowledge")
+    p_mesh_get.add_argument("--key", required=True, help="Knowledge key")
+    p_mesh_get.add_argument("--node-id", help="Node ID")
+    p_mesh_get.set_defaults(func=cmd_mesh)
+    
+    # mesh cloud
+    p_mesh_cloud = mesh_sub.add_parser("cloud", help="Cloud storage")
+    cloud_sub = p_mesh_cloud.add_subparsers(dest="cloud_action")
+    
+    # mesh cloud add
+    p_cloud_add = cloud_sub.add_parser("add", help="Add cloud provider")
+    p_cloud_add.add_argument("--provider", required=True, choices=["dropbox", "github", "google"])
+    p_cloud_add.add_argument("--token", required=True)
+    p_cloud_add.add_argument("--node-id", help="Node ID")
+    p_cloud_add.set_defaults(func=cmd_mesh)
+    
+    # mesh cloud connect
+    p_cloud_connect = cloud_sub.add_parser("connect", help="Connect all providers")
+    p_cloud_connect.set_defaults(func=cmd_mesh)
+    
+    # mesh cloud status
+    p_cloud_status = cloud_sub.add_parser("status", help="Cloud status")
+    p_cloud_status.set_defaults(func=cmd_mesh)
+    
+    # mesh cloud sync
+    p_cloud_sync = cloud_sub.add_parser("sync", help="Sync to cloud")
+    p_cloud_sync.add_argument("--node-id", help="Node ID")
+    p_cloud_sync.set_defaults(func=cmd_mesh)
 
     args = parser.parse_args()
     if args.command:
