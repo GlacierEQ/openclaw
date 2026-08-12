@@ -97,6 +97,17 @@ class FreeTierAgentHub:
                 max_tokens=32768,
                 capabilities=["code", "heavy", "unlimited", "optimization", "glaciereq"],
             ),
+            "mastermind": AgentConfig(
+                name="Mastermind",
+                tier=AgentTier.LOCAL,
+                provider="glaciereq",
+                model="mastermind:latest",
+                endpoint="http://localhost:11434/api/chat",
+                api_key_env="",
+                cost_per_1k_tokens=0.0,
+                max_tokens=32768,
+                capabilities=["orchestration", "planning", "management", "coordination", "glaciereq"],
+            ),
 
             # ================================================================
             # STEALTH SERIES (Local - Unlimited)
