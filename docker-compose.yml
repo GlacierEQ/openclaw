@@ -1,0 +1,15 @@
+services:
+  openclaw:
+    build: .
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      OPENCLAW_API_TOKEN: "${OPENCLAW_API_TOKEN:?set OPENCLAW_API_TOKEN}"
+      OPENCLAW_AUDIT_SECRET: "${OPENCLAW_AUDIT_SECRET:?set OPENCLAW_AUDIT_SECRET}"
+    volumes:
+      - "${OPENCLAW_WATCH_PATH:-.}:/watch:ro"
+      - openclaw-state:/app/.openclaw
+    command: ["python", "server.py", "--host", "0.0.0.0", "--port", "8088", "--watch-dir", "/watch"]
+    restart: unless-stopped
+volumes:
+  openclaw-state:

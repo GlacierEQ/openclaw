@@ -1,145 +1,136 @@
 #!/usr/bin/env python3
-"""OpenClaw API Server — REST API for file integrity monitoring and action governance."""
+"""OpenClaw REST control plane with authenticated mutation endpoints."""
+from __future__ import annotations
 
-import json
-import time
-import sys
+import hmac
+import os
 from pathlib import Path
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Dict, Any
-import hashlib
+from typing import Any, Dict, List, Optional, Tuple
 
-sys.path.insert(0, str(Path(__file__).parent))
-sys.path.insert(0, str(Path(__file__).parent / ".integrity"))
-from watchdog_daemon import WatchdogDaemon
+from fastapi import Depends, FastAPI, Header, HTTPException, status
+from pydantic import BaseModel, Field
+
+from src.integrity import WatchdogDaemon
 from src.openclaw import OpenClawEngine
 
-HOST = "0.0.0.0"
-PORT = 8088
+
+class ActionRequest(BaseModel):
+    action_type: str
+    target: str = ""
+    parameters: Dict[str, Any] = Field(default_factory=dict)
+    coords: Optional[Tuple[int, int]] = None
+    principal: str = "api-operator"
+    source: str = "rest"
+    idempotency_key: Optional[str] = None
+    human_approved: bool = False
 
 
-class OpenClawAPI(BaseHTTPRequestHandler):
-    """REST API handler for OpenClaw services."""
-
-    daemon: WatchdogDaemon = None
-    engine: OpenClawEngine = None
-
-    def _send_json(self, data: Dict, status: int = 200):
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps(data, indent=2).encode())
-
-    def _read_body(self) -> Dict:
-        length = int(self.headers.get("Content-Length", 0))
-        if length == 0:
-            return {}
-        return json.loads(self.rfile.read(length))
-
-    def do_GET(self):
-        path = self.path.rstrip("/")
-
-        if path == "/health":
-            self._send_json({
-                "status": "healthy",
-                "service": "openclaw-api",
-                "version": "3.0.0",
-                "timestamp": time.time(),
-            })
-
-        elif path == "/integrity/status":
-            report = self.daemon.get_report()
-            self._send_json(report)
-
-        elif path == "/integrity/check":
-            result = self.daemon.check_integrity()
-            self._send_json(result)
-
-        elif path == "/integrity/scan":
-            result = self.daemon.initial_scan()
-            self._send_json(result)
-
-        elif path == "/engine/history":
-            history = self.engine.get_audit_trail()
-            self._send_json({
-                "total_actions": len(history),
-                "actions": history[-50:],
-            })
-
-        elif path == "/engine/stats":
-            self._send_json({
-                "agent_id": self.engine.agent_id,
-                "total_actions": len(self.engine.action_history),
-                "config": self.engine.config.get("openclaw_version", "unknown"),
-            })
-
-        else:
-            self._send_json({"error": "Not found", "endpoints": [
-                "/health", "/integrity/status", "/integrity/check",
-                "/integrity/scan", "/engine/history", "/engine/stats",
-                "/engine/action (POST)", "/engine/vision (POST)",
-            ]}, 404)
-
-    def do_POST(self):
-        path = self.path.rstrip("/")
-
-        if path == "/engine/action":
-            body = self._read_body()
-            result = self.engine.execute_action(
-                action_type=body.get("action_type", "click"),
-                target=body.get("target", ""),
-                parameters=body.get("parameters"),
-                coords=tuple(body.get("coords", [0, 0])),
-            )
-            self._send_json(result)
-
-        elif path == "/engine/vision":
-            body = self._read_body()
-            result = self.engine.sample_vision_state(
-                viewport=tuple(body.get("viewport", [1920, 1080]))
-            )
-            self._send_json(result)
-
-        elif path == "/integrity/add-watch":
-            body = self._read_body()
-            dir_path = body.get("directory", ".")
-            if dir_path not in self.daemon.watch_dirs:
-                from pathlib import Path as P
-                self.daemon.watch_dirs.append(P(dir_path).resolve())
-                self._send_json({"status": "added", "directory": dir_path})
-            else:
-                self._send_json({"status": "already_watching", "directory": dir_path})
-
-        else:
-            self._send_json({"error": "Not found"}, 404)
-
-    def log_message(self, format, *args):
-        print(f"[OpenClaw API] {args[0]}" if args else "")
+class VisionRequest(BaseModel):
+    viewport: Tuple[int, int] = (1920, 1080)
 
 
-def create_server(host: str = HOST, port: int = PORT) -> HTTPServer:
-    OpenClawAPI.daemon = WatchdogDaemon(watch_dirs=["."])
-    OpenClawAPI.daemon.initial_scan()
-    OpenClawAPI.engine = OpenClawEngine()
-
-    server = HTTPServer((host, port), OpenClawAPI)
-    print(f"[OpenClaw API] Server running on http://{host}:{port}")
-    return server
+class WatchRequest(BaseModel):
+    directory: str
 
 
-def main():
+def _bearer_token(authorization: Optional[str]) -> Optional[str]:
+    if not authorization:
+        return None
+    scheme, _, value = authorization.partition(" ")
+    return value if scheme.lower() == "bearer" and value else None
+
+
+def create_app(*, engine: Optional[OpenClawEngine] = None, daemon: Optional[WatchdogDaemon] = None, watch_dirs: Optional[List[str]] = None, require_token: Optional[bool] = None) -> FastAPI:
+    engine = engine or OpenClawEngine()
+    daemon = daemon or WatchdogDaemon(watch_dirs=watch_dirs or ["."])
+    if not daemon.fingerprints:
+        daemon.initial_scan()
+    api_cfg = engine.config.get("api", {})
+    token_required = bool(api_cfg.get("require_token", True)) if require_token is None else bool(require_token)
+    token_env = str(api_cfg.get("token_env", "OPENCLAW_API_TOKEN"))
+
+    app = FastAPI(title="OpenClaw", version=str(engine.config.get("version", "3.1.0")))
+    app.state.engine = engine
+    app.state.daemon = daemon
+    app.state.require_token = token_required
+    app.state.token_env = token_env
+
+    def authorize_mutation(authorization: Optional[str] = Header(default=None)) -> None:
+        if not app.state.require_token:
+            return
+        expected = os.getenv(app.state.token_env, "")
+        if not expected:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"{app.state.token_env} not configured")
+        supplied = _bearer_token(authorization)
+        if supplied is None or not hmac.compare_digest(supplied, expected):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token")
+
+    @app.get("/health")
+    def health() -> Dict[str, Any]:
+        return {"service": "openclaw-api", "engine": app.state.engine.health(), "integrity": app.state.daemon.get_report(), "mutation_auth_required": app.state.require_token}
+
+    @app.get("/integrity/status")
+    def integrity_status() -> Dict[str, Any]:
+        return app.state.daemon.get_report()
+
+    @app.post("/integrity/check")
+    def integrity_check(_: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+        return app.state.daemon.check_integrity()
+
+    @app.post("/integrity/scan")
+    def integrity_scan(_: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+        return app.state.daemon.initial_scan()
+
+    @app.post("/integrity/add-watch")
+    def add_watch(body: WatchRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+        path = Path(body.directory).expanduser().resolve()
+        if path in app.state.daemon.watch_dirs:
+            return {"status": "already_watching", "directory": str(path)}
+        if not path.exists() or not path.is_dir():
+            raise HTTPException(status_code=400, detail="directory does not exist")
+        app.state.daemon.watch_dirs.append(path)
+        return {"status": "added", "directory": str(path)}
+
+    @app.get("/engine/history")
+    def engine_history(limit: int = 50) -> Dict[str, Any]:
+        history = app.state.engine.get_audit_trail(max(1, min(int(limit), 1000)))
+        return {"total_returned": len(history), "actions": history}
+
+    @app.get("/engine/stats")
+    def engine_stats() -> Dict[str, Any]:
+        return app.state.engine.health()
+
+    @app.post("/engine/action")
+    def engine_action(body: ActionRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+        result = app.state.engine.execute_action(action_type=body.action_type, target=body.target, parameters=body.parameters, coords=body.coords, principal=body.principal, source=body.source, idempotency_key=body.idempotency_key, human_approved=body.human_approved)
+        code = {"OPENCLAW_BACKEND_UNAVAILABLE": 503, "RATE_LIMITED": 429, "DENIED_BY_AKOS_POLICY": 403, "HUMAN_APPROVAL_REQUIRED": 403, "UNSUPPORTED_BY_BACKEND": 403, "OPENCLAW_ACTION_FAILED": 502}.get(result.get("status"))
+        if code:
+            raise HTTPException(status_code=code, detail=result)
+        return result
+
+    @app.post("/engine/vision")
+    def engine_vision(body: VisionRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+        return app.state.engine.sample_vision_state(body.viewport)
+
+    return app
+
+
+app = create_app()
+
+
+def main() -> None:
     import argparse
-    parser = argparse.ArgumentParser(description="OpenClaw API Server")
-    parser.add_argument("--host", default=HOST)
-    parser.add_argument("--port", type=int, default=PORT)
+    import uvicorn
+    parser = argparse.ArgumentParser(description="OpenClaw API server")
+    parser.add_argument("--host", default=None)
+    parser.add_argument("--port", type=int, default=None)
+    parser.add_argument("--watch-dir", action="append", dest="watch_dirs")
     args = parser.parse_args()
-
-    server = create_server(args.host, args.port)
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\n[OpenClaw API] Shutting down...")
-        server.shutdown()
+    if args.watch_dirs:
+        app.state.daemon = WatchdogDaemon(watch_dirs=args.watch_dirs)
+        app.state.daemon.initial_scan()
+    cfg = app.state.engine.config.get("api", {})
+    uvicorn.run(app, host=args.host or str(cfg.get("host", "127.0.0.1")), port=args.port or int(cfg.get("port", 8088)))
 
 
 if __name__ == "__main__":

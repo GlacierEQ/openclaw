@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glaciereq-openclaw"
+version = "3.1.0"
+description = "Controlled automation runtime, file-integrity watchdog, and action governor"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+dependencies = ["fastapi>=0.115.0", "httpx>=0.27.0", "uvicorn>=0.34.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+gui = ["pyautogui>=0.9.54", "pillow>=10.0"]
+browser = ["playwright>=1.49.0"]
+ocr = ["pytesseract>=0.3.13", "pillow>=10.0"]
+all = ["pyautogui>=0.9.54", "pillow>=10.0", "playwright>=1.49.0", "pytesseract>=0.3.13"]
+
+[project.scripts]
+openclaw = "cli:main"
+openclaw-api = "server:main"
+openclaw-mcp = "mcp_server:main"
+
+[tool.setuptools]
+py-modules = ["cli", "server", "mcp_server", "mastermind_sidecar"]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

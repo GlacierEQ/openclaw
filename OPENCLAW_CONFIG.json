@@ -1,38 +1,32 @@
 {
   "name": "openclaw",
-  "description": "OpenClaw — File Integrity Watchdog & Action Governor",
-  "version": "3.0.0",
-  "openclaw_version": "3.0.0-PRODUCTION",
-  "engine_mode": "PRODUCTION",
+  "description": "OpenClaw — controlled automation runtime, file integrity watchdog, and action governor",
+  "version": "3.1.0",
+  "openclaw_version": "3.1.0",
+  "engine_mode": "CONTROLLED_RUNTIME",
   "policy_governor": {
     "akos_enforced": true,
-    "max_actions_per_second": 1000,
-    "max_retry_attempts": 3,
-    "allowed_action_types": [
-      "click", "type", "scroll", "navigate", "inspect_dom",
-      "capture_screenshot", "hover", "drag_and_drop", "shortcut",
-      "key_press", "ocr_read_screen", "vision_sample"
-    ]
+    "max_actions_per_second": 20,
+    "max_retry_attempts": 2,
+    "require_human_approval_for": [],
+    "allowed_action_types": ["click","type","scroll","navigate","inspect_dom","capture_screenshot","hover","drag_and_drop","shortcut","key_press","ocr_read_screen","vision_sample"]
   },
-  "action_defaults": {
-    "mouse_movement_curve": "BEZIER_SMOOTH",
-    "typing_delay_ms": 2,
-    "viewport_dimensions": [1920, 1080],
-    "screenshot_compression_quality": 95,
-    "sha256_audit_logging": true
+  "execution": {
+    "backend": "auto",
+    "audit_log": ".openclaw/action_audit.jsonl",
+    "audit_secret_env": "OPENCLAW_AUDIT_SECRET",
+    "local_gui_env": "OPENCLAW_LOCAL_GUI",
+    "browser_cdp_env": "OPENCLAW_BROWSER_CDP_URL",
+    "launch_browser": false,
+    "browser_headless": true,
+    "screenshot_dir": ".openclaw/screenshots"
   },
   "watchdog": {
     "poll_interval_seconds": 2.0,
-    "exclude_patterns": [".git", "__pycache__", "node_modules", ".DS_Store"],
+    "exclude_patterns": [".git","__pycache__","node_modules",".DS_Store",".openclaw","*.pyc",".env"],
     "state_file": ".openclaw/watchdog_state.json",
     "event_log": ".openclaw/watchdog_events.jsonl"
   },
-  "api": {
-    "host": "0.0.0.0",
-    "port": 8088
-  },
-  "mcp": {
-    "enabled": true,
-    "port": 8089
-  }
+  "api": {"host":"127.0.0.1","port":8088,"require_token":true,"token_env":"OPENCLAW_API_TOKEN"},
+  "mcp": {"enabled":true,"host":"127.0.0.1","port":8089,"require_token":true,"token_env":"OPENCLAW_MCP_TOKEN"}
 }

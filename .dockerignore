@@ -1,0 +1,10 @@
+.git
+.github
+__pycache__
+.pytest_cache
+.venv
+.env
+.openclaw/*.jsonl
+.openclaw/*.json
+.openclaw/screenshots
+*.pyc

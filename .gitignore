@@ -1,4 +1,4 @@
-# Python bytecode / caches (elite estate hygiene)
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -14,3 +14,9 @@ venv/
 *.egg-info/
 dist/
 build/
+
+# OpenClaw runtime state
+.openclaw/action_audit.jsonl
+.openclaw/watchdog_state.json
+.openclaw/watchdog_events.jsonl
+.openclaw/screenshots/
