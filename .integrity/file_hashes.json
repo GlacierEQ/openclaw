@@ -1,10 +1,5 @@
 {
-  "file_count": 5,
-  "hashes": {
-    "OPENCLAW_CONFIG.json": "ea1eebf0ab70cab1a298b6bcb1a70a2ff1437db684feedae7434289f2b46f1e5",
-    "README.md": "77c07a7e4110edeb07bde3f83f659f4db0d33f4a7efccb6d9ba4ba337893ccf0",
-    "mastermind_sidecar.py": "0aa3e0f7bbd9d08f9625d915ae165704cdac3a2686bf11d5a3794225106b3577",
-    "src/openclaw.py": "345173dcf4cb1a7e9456bab659c0c582995a509126f18cdb107ec79647eacbf1",
-    "tests/test_openclaw.py": "ae69410ea6dcc03a8b56330bda4ae76f3c7fa0160cbfaded3d05af6d543465b3"
-  }
+  "schema": "openclaw.legacy-integrity-template.v1",
+  "fingerprints": {},
+  "note": "Legacy template only. Canonical runtime baselines live under host-local .openclaw state."
 }
