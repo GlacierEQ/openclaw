@@ -42,10 +42,15 @@ class RuntimeAgentHub:
 
     def route_query(self, prompt: str, prefer_local: bool = True, system: str = "You are a coding assistant.", mode: str = "code") -> Dict[str, Any]:
         self.discover()
-        endpoint = self.fabric.route(prefer_local=prefer_local, free_only=True)
-        if endpoint is None:
-            return {"status": "failed", "error": "NO_FREE_AGENT"}
-        return {"routed": endpoint.endpoint_id, **self.fabric.chat(endpoint, prompt, system=system, mode=mode)}
+        candidates = [endpoint for endpoint in self.fabric.free_first() if endpoint.free]
+        candidates.sort(key=lambda endpoint: ((not endpoint.local) if prefer_local else endpoint.local, not endpoint.verified, endpoint.provider, endpoint.model))
+        attempts = []
+        for endpoint in candidates:
+            result = self.fabric.chat(endpoint, prompt, system=system, mode=mode)
+            if result.get("status") == "completed":
+                return {"routed": endpoint.endpoint_id, "attempts_before_success": len(attempts), **result}
+            attempts.append({"agent_id": endpoint.endpoint_id, "provider": endpoint.provider, "model": endpoint.model, "error": result.get("error") or result.get("status")})
+        return {"status": "failed", "error": "NO_WORKING_FREE_AGENT", "attempts": attempts}
 
     def fanout(self, prompt: str, max_agents: int = 0, system: str = "You are a coding assistant.", mode: str = "plan") -> Dict[str, Any]:
         self.discover()
@@ -70,7 +75,7 @@ class RuntimeAgentHub:
             "free": sum(endpoint.free for endpoint in values),
             "local": sum(endpoint.local for endpoint in values),
             "providers": {provider: sum(endpoint.provider == provider for endpoint in values) for provider in sorted({endpoint.provider for endpoint in values})},
-            "strategy": "free-local-first",
+            "strategy": "free-local-first-with-fallback",
         }
 
 
