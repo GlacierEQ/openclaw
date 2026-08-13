@@ -4,9 +4,9 @@
   "status": "REISSUE_REQUIRED",
   "active_grant": null,
   "required_secret_env": "OPENCLAW_PROMOTION_SECRET",
-  "reason": "Prior source-embedded promotion secret is retired. Promotion authority now requires an operator-supplied private secret outside the repository.",
-  "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
-  "ci_run_id": 31750286997,
+  "reason": "Promotion authority requires an operator-supplied private secret outside the repository.",
+  "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
+  "ci_run_id": 31751451510,
   "host_deployment_required_for_live_promotion": true,
-  "updated_at": "2026-08-13T22:32:18Z"
+  "updated_at": "2026-08-13T22:49:32Z"
 }
