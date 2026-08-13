@@ -13,9 +13,9 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from src.action_runtime import DryRunBackend
+from src.agent_runtime import RuntimeAgentHub
 from src.integrity import WatchdogDaemon
 from src.openclaw import OpenClawEngine
-from src.agent_hub import FreeTierAgentHub
 
 
 def emit(value: Any) -> None:
@@ -82,7 +82,7 @@ def cmd_mcp(args):
 
 
 def cmd_agents(args):
-    hub = FreeTierAgentHub()
+    hub = RuntimeAgentHub()
     if args.agent_action == "list":
         if args.filter == "local":
             agents = hub.get_local_agents()
@@ -107,6 +107,31 @@ def cmd_agents(args):
 
 def cmd_mesh(args):
     from src.mesh_intelligence import MeshIntelligence
+
+    if args.mesh_action == "cloud":
+        from src.cloud_storage import create_cloud_manager
+        manager = create_cloud_manager()
+        if args.cloud_action in {"add", "configure"}:
+            target = {}
+            if args.repo:
+                target["repo"] = args.repo
+            if args.path:
+                target["path"] = args.path
+            ok = manager.configure_provider(
+                args.provider,
+                credential_env=args.credential_env,
+                target=target,
+            )
+            emit({"status": "configured" if ok else "rejected", "provider": args.provider, "credential_env": args.credential_env, "target": target})
+        elif args.cloud_action == "connect":
+            emit(manager.connect_all())
+        elif args.cloud_action == "status":
+            emit(manager.get_status())
+        elif args.cloud_action == "sync":
+            mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
+            emit(manager.sync_knowledge(mesh.knowledge))
+        return
+
     mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
     if args.mesh_action == "start":
         mesh.start()
@@ -219,6 +244,23 @@ def build_parser() -> argparse.ArgumentParser:
     mesh_get.add_argument("--node-id")
     mesh_get.add_argument("--key", required=True)
     mesh_get.set_defaults(func=cmd_mesh)
+
+    cloud = mesh_sub.add_parser("cloud")
+    cloud_sub = cloud.add_subparsers(dest="cloud_action", required=True)
+    for command_name in ("add", "configure"):
+        configure = cloud_sub.add_parser(command_name)
+        configure.add_argument("--provider", choices=["dropbox", "github"], required=True)
+        configure.add_argument("--credential-env", required=True)
+        configure.add_argument("--repo")
+        configure.add_argument("--path")
+        configure.set_defaults(func=cmd_mesh)
+    cloud_connect = cloud_sub.add_parser("connect")
+    cloud_connect.set_defaults(func=cmd_mesh)
+    cloud_status = cloud_sub.add_parser("status")
+    cloud_status.set_defaults(func=cmd_mesh)
+    cloud_sync = cloud_sub.add_parser("sync")
+    cloud_sync.add_argument("--node-id")
+    cloud_sync.set_defaults(func=cmd_mesh)
     return parser
 
 
