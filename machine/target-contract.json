@@ -1,22 +1,43 @@
 {
-  "schema": "glaciereq.repo-target-contract.v1",
+  "schema": "glaciereq.repo-target-contract.v2",
   "identity": {
     "repository_id": "GlacierEQ/openclaw",
-    "family": "elite-estate"
+    "family": "elite-estate",
+    "canonical_position": "GlacierEQ/openclaw"
   },
   "current": {
-    "state": "PROMOTED",
+    "state": "RUNTIME_COMPLETE_HOST_UNDEPLOYED",
     "implemented": true,
     "tested": true,
-    "deployed": false
+    "packaged": true,
+    "docker_build_verified": true,
+    "deployed": false,
+    "host_backend_activated": false
+  },
+  "verification": {
+    "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+    "ci_run_id": 31750286997,
+    "ci_conclusion": "success",
+    "python_matrix": ["3.12", "3.13"],
+    "tests": "15 passed",
+    "runtime_proof": "PASS",
+    "dependency_check": "PASS",
+    "docker_build": "PASS",
+    "verified_at": "2026-08-13T22:32:18Z"
   },
   "nonclaims": [
     "no employer affiliation",
-    "no production deployment without receipt"
+    "no live host or desktop/browser backend deployment without a host receipt",
+    "deterministic proof backend is not production-host execution",
+    "docker image build is not a deployment receipt"
   ],
-  "donor_plan": {
-    "mode": "none",
-    "donors": []
+  "completion_boundary": {
+    "repository_runtime": "COMPLETE_AND_CI_VERIFIED",
+    "host_activation": "PENDING_EXTERNAL_HOST",
+    "live_deployment": "PENDING_EXTERNAL_HOST"
   },
-  "frozen_at": "2026-08-10T04:12Z"
+  "donor_plan": {
+    "mode": "resolved",
+    "donors": []
+  }
 }
