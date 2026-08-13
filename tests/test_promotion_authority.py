@@ -1,33 +1,26 @@
 from __future__ import annotations
-import hashlib, json, unittest
-from pathlib import Path
-from src.promotion_authority import (
-    LOCAL_OPERATOR_SECRET, PromotionAuthority, verify_bound_grant,
-)
-ROOT = Path(__file__).resolve().parents[1]
-class PromotionAuthTests(unittest.TestCase):
-    def test_issue_verify(self):
-        a = PromotionAuthority(b"test-secret", ttl_s=60)
-        g = a.issue("GlacierEQ/x", "abc", "def", now=1000.0)
-        ok, r = a.verify(g, now=1001.0)
-        self.assertTrue(ok)
-    def test_expired(self):
-        a = PromotionAuthority(b"test-secret", ttl_s=10)
-        g = a.issue("GlacierEQ/x", "abc", "def", now=1000.0)
-        ok, r = a.verify(g, now=2000.0)
-        self.assertFalse(ok)
-        self.assertEqual(r, "GRANT_EXPIRED")
-    def test_real_machine_grant_verifies_against_proof_receipt(self):
-        grant_path = ROOT / "machine" / "promotion_authority.json"
-        proof_path = ROOT / "machine" / "proof_receipt.json"
-        if not grant_path.is_file() or not proof_path.is_file():
-            self.skipTest("receipts not yet bound")
-        grant = json.loads(grant_path.read_text())
-        proof = json.loads(proof_path.read_text())
-        file_digest = hashlib.sha256(proof_path.read_bytes()).hexdigest()
-        self.assertEqual(grant["proof_receipt_digest"], file_digest)
-        self.assertEqual(grant["source_sha"], proof["source_sha"])
-        ok, reason = verify_bound_grant(grant, proof_path, secret=LOCAL_OPERATOR_SECRET)
-        self.assertTrue(ok, reason)
-if __name__ == "__main__":
-    unittest.main()
+
+import hashlib
+import json
+import time
+
+from src.promotion_authority import PromotionAuthority, verify_bound_grant
+
+
+def test_issue_verify_and_expiry():
+    authority = PromotionAuthority(b"test-secret", ttl_s=1)
+    grant = authority.issue("repo", "sha", "proof", now=10)
+    assert authority.verify(grant, now=10.5) == (True, None)
+    assert authority.verify(grant, now=12) == (False, "GRANT_EXPIRED")
+
+
+def test_bound_grant_requires_private_operator_secret(tmp_path):
+    proof = tmp_path / "proof.json"
+    proof.write_text(json.dumps({"source_sha": "abc"}))
+    digest = hashlib.sha256(proof.read_bytes()).hexdigest()
+    authority = PromotionAuthority(b"private-test-key", ttl_s=100)
+    grant = authority.issue("repo", "abc", digest, now=time.time())
+    assert verify_bound_grant(grant.__dict__, proof, secret=b"private-test-key")[0] is True
+    ok, error = verify_bound_grant(grant.__dict__, proof, secret=None, secret_env="OPENCLAW_TEST_SECRET_NOT_SET")
+    assert ok is False
+    assert error == "OPERATOR_SECRET_MISSING"
