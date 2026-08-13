@@ -1,1 +1,25 @@
-{"capabilities": ["hyper-scaling"]}
+{
+  "schema": "openclaw.capabilities.v2",
+  "repository": "GlacierEQ/openclaw",
+  "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
+  "capabilities": [
+    "policy_governed_computer_user_actions",
+    "fail_closed_execution_backends",
+    "persistent_hash_chained_action_audit",
+    "sha256_file_integrity_monitoring",
+    "authenticated_rest_control_plane",
+    "mcp_jsonrpc_stdio_and_http",
+    "host_observed_agent_routing",
+    "secretless_cloud_configuration",
+    "authenticated_lan_mesh_runtime",
+    "persistent_mesh_knowledge_store",
+    "truth_bounded_mobile_task_runtime",
+    "docker_packaging_and_ci_proof"
+  ],
+  "nonclaims": [
+    "hyper-scaling",
+    "live production host deployment",
+    "unobserved hardware acceleration",
+    "fabricated inference output"
+  ]
+}
