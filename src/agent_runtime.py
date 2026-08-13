@@ -1,67 +1,77 @@
-"""Host-local persistence layer for the OpenClaw agent hub."""
+"""Compatibility agent hub backed by the OpenClaw model fabric."""
 from __future__ import annotations
 
-import json
-import time
-from pathlib import Path
-from typing import Dict
+from typing import Any, Dict, List
 
-from .agent_hub import FreeTierAgentHub
+from .model_fabric import ModelFabric
 
 
-class RuntimeAgentHub(FreeTierAgentHub):
-    """Agent hub whose verification state is host-local and time-bounded.
+class RuntimeAgentHub:
+    def __init__(self, state_path: str = ".openclaw/agents_state.json", state_ttl_s: float = 900.0, fabric_config: str | None = None):
+        self.state_path = state_path
+        self.state_ttl_s = state_ttl_s
+        self.fabric = ModelFabric(config_path=fabric_config)
+        self.fabric.discover_all()
+        self.agents = self.fabric.endpoints
+        self.test_results: Dict[str, Dict[str, Any]] = {}
 
-    Source defines candidate routes. A route becomes verified only after this
-    host has observed a successful probe, and that observation expires.
-    """
-
-    def __init__(self, state_path: str = ".openclaw/agents_state.json", state_ttl_s: float = 900.0):
-        self.state_path = Path(state_path)
-        self.state_ttl_s = float(state_ttl_s)
-        super().__init__(config_path=str(self.state_path))
-        self._load_runtime_state()
-
-    def _load_runtime_state(self) -> None:
-        if not self.state_path.exists():
-            return
-        try:
-            state = json.loads(self.state_path.read_text(encoding="utf-8"))
-            observed_at = float(state.get("observed_at", 0))
-            if observed_at <= 0 or time.time() - observed_at > self.state_ttl_s:
-                return
-            statuses = state.get("statuses", {})
-            for name, status in statuses.items():
-                if name in self.agents and status in {"verified", "failed", "untested"}:
-                    self.agents[name].status = status
-            results = state.get("test_results", {})
-            self.test_results = results if isinstance(results, dict) else {}
-        except (OSError, ValueError, TypeError):
-            return
-
-    def test_agent(self, agent_name: str) -> Dict:
-        result = super().test_agent(agent_name)
-        if result.get("status") == "verified" and not str(result.get("response_preview", "")).strip():
-            self.agents[agent_name].status = "failed"
-            result = {
-                "status": "failed",
-                "error": "EMPTY_RESPONSE",
-                "latency_ms": result.get("latency_ms", 0),
-            }
-            self.test_results[agent_name] = result
-        return result
+    def discover(self) -> List[Dict[str, Any]]:
+        self.fabric.discover_all()
+        self.agents = self.fabric.endpoints
+        return [endpoint.to_dict() for endpoint in self.agents.values()]
 
     def save_state(self) -> None:
-        self.state_path.parent.mkdir(parents=True, exist_ok=True)
-        state = {
-            "schema": "openclaw.agent-observation-state.v1",
-            "observed_at": time.time(),
-            "ttl_seconds": self.state_ttl_s,
-            "statuses": {name: agent.status for name, agent in self.agents.items()},
-            "test_results": self.test_results,
-            "report": self.get_report(),
+        return None
+
+    def test_agent(self, agent_name: str) -> Dict[str, Any]:
+        endpoint = self.agents.get(agent_name)
+        if endpoint is None:
+            return {"status": "failed", "error": "AGENT_NOT_FOUND", "agent_id": agent_name}
+        result = self.fabric.probe(endpoint)
+        self.test_results[agent_name] = result
+        return {"agent_id": agent_name, **result}
+
+    def test_all(self) -> Dict[str, Dict[str, Any]]:
+        return {name: self.test_agent(name) for name in list(self.agents)}
+
+    def query(self, agent_name: str, prompt: str, system: str = "You are a coding assistant.", mode: str = "code") -> Dict[str, Any]:
+        endpoint = self.agents.get(agent_name)
+        if endpoint is None:
+            return {"status": "failed", "error": "AGENT_NOT_FOUND", "agent_id": agent_name}
+        return self.fabric.chat(endpoint, prompt, system=system, mode=mode)
+
+    def route_query(self, prompt: str, prefer_local: bool = True, system: str = "You are a coding assistant.", mode: str = "code") -> Dict[str, Any]:
+        self.discover()
+        endpoint = self.fabric.route(prefer_local=prefer_local, free_only=True)
+        if endpoint is None:
+            return {"status": "failed", "error": "NO_FREE_AGENT"}
+        return {"routed": endpoint.endpoint_id, **self.fabric.chat(endpoint, prompt, system=system, mode=mode)}
+
+    def fanout(self, prompt: str, max_agents: int = 0, system: str = "You are a coding assistant.", mode: str = "plan") -> Dict[str, Any]:
+        self.discover()
+        results = self.fabric.fanout(prompt, max_agents=max_agents, system=system, mode=mode, verified_only=False)
+        completed = sum(result.get("status") == "completed" for result in results)
+        return {"status": "completed" if completed else "failed", "agents_run": len(results), "completed": completed, "results": results}
+
+    def get_verified_agents(self) -> List[Dict[str, Any]]:
+        return [endpoint.to_dict() for endpoint in self.agents.values() if endpoint.verified]
+
+    def get_local_agents(self) -> List[Dict[str, Any]]:
+        return [endpoint.to_dict() for endpoint in self.agents.values() if endpoint.local]
+
+    def get_free_agents(self) -> List[Dict[str, Any]]:
+        return [endpoint.to_dict() for endpoint in self.agents.values() if endpoint.free]
+
+    def get_report(self) -> Dict[str, Any]:
+        values = list(self.agents.values())
+        return {
+            "total_agents": len(values),
+            "verified": sum(endpoint.verified for endpoint in values),
+            "free": sum(endpoint.free for endpoint in values),
+            "local": sum(endpoint.local for endpoint in values),
+            "providers": {provider: sum(endpoint.provider == provider for endpoint in values) for provider in sorted({endpoint.provider for endpoint in values})},
+            "strategy": "free-local-first",
         }
-        self.state_path.write_text(json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 __all__ = ["RuntimeAgentHub"]
