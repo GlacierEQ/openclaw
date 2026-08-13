@@ -1,20 +1,15 @@
 {
-  "schema": "glaciereq.repo-excellence-scores.v1",
+  "schema": "glaciereq.repo-excellence-scores.v2",
   "repository": "GlacierEQ/openclaw",
-  "never_collapse": true,
+  "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
   "axes": {
-    "target_architecture": {
-      "grade": "B"
-    },
-    "current_proof": {
-      "grade": "A"
-    },
-    "company_fit": {
-      "score": 0.0
-    },
-    "canonical_confidence": {
-      "score": 0.0,
-      "role": "PROMOTED_LEAF"
-    }
-  }
+    "target_architecture": {"grade": "A"},
+    "current_proof": {"grade": "A", "ci_run_id": 31751451510, "tests": "29 passed"},
+    "runtime_truthfulness": {"grade": "A"},
+    "security_boundaries": {"grade": "A"},
+    "packaging": {"grade": "A"},
+    "live_host_activation": {"grade": "PENDING_EXTERNAL_HOST"},
+    "canonical_confidence": {"score": 1.0, "role": "CANONICAL_OPENCLAW_RUNTIME"}
+  },
+  "rule": "A pending live-host receipt does not downgrade the verified repository runtime, but it blocks any live-deployment claim."
 }
