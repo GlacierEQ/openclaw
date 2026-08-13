@@ -15,8 +15,13 @@ venv/
 dist/
 build/
 
-# OpenClaw runtime state
+# OpenClaw host-local runtime state
 .openclaw/action_audit.jsonl
 .openclaw/watchdog_state.json
 .openclaw/watchdog_events.jsonl
+.openclaw/agents_state.json
+.openclaw/agents_config.json
 .openclaw/screenshots/
+
+# Legacy generated baseline
+.integrity/file_hashes.json
