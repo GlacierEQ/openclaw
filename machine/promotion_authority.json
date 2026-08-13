@@ -1,11 +1,12 @@
 {
-  "schema": "glaciereq.promotion-authority-grant.v1",
+  "schema": "openclaw.promotion-authority-state.v2",
   "repository": "GlacierEQ/openclaw",
-  "source_sha": "3c6ea519b99e0fdc1d6f2bdfa288ce0df7c8da016fd5949127d453c8641a4114",
-  "proof_receipt_digest": "fcb9ffeefa3623a5714330af25fb0aeab823fcac6340d52e23f3c502e17ecd4d",
-  "not_after": 1788927149.234226,
-  "mac": "249cfeba091909bde169173cf11213226ff640caa68f94822675177cb571eb95",
-  "issuer": "local_operator_promotion_authority",
-  "verified": true,
-  "secret_ref": "src/promotion_authority.py::LOCAL_OPERATOR_SECRET"
+  "status": "REISSUE_REQUIRED",
+  "active_grant": null,
+  "required_secret_env": "OPENCLAW_PROMOTION_SECRET",
+  "reason": "Prior source-embedded promotion secret is retired. Promotion authority now requires an operator-supplied private secret outside the repository.",
+  "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+  "ci_run_id": 31750286997,
+  "host_deployment_required_for_live_promotion": true,
+  "updated_at": "2026-08-13T22:32:18Z"
 }
