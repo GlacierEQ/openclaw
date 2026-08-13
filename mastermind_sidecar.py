@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""
-APEX Highway Sidecar Node — openclaw
-"""
-import sys
+"""OpenClaw sidecar presence projection."""
 import json
 import time
 
+
 def get_node_status():
+    started = time.perf_counter()
     return {
         "node_id": "openclaw",
-        "status": "HEALTHY",
-        "latency_ms": 1.2,
-        "timestamp": time.time()
+        "status": "PRESENT",
+        "latency_ms": round((time.perf_counter() - started) * 1000.0, 3),
+        "timestamp": time.time(),
+        "claim": "PROCESS_LOCAL_PRESENCE_ONLY"
     }
 
+
 if __name__ == "__main__":
-    print(json.dumps(get_node_status()))
+    print(json.dumps(get_node_status(), sort_keys=True))
