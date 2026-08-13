@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "glaciereq-openclaw"
-version = "3.1.0"
-description = "Controlled automation runtime, file-integrity watchdog, and action governor"
+version = "3.2.0"
+description = "Controlled automation runtime, integrity watchdog, and free-first model fabric"
 readme = "README.md"
 requires-python = ">=3.12"
 license = {text = "MIT"}
@@ -22,6 +22,8 @@ all = ["pyautogui>=0.9.54", "pillow>=10.0", "playwright>=1.49.0", "pytesseract>=
 openclaw = "cli:main"
 openclaw-api = "server:main"
 openclaw-mcp = "mcp_server:main"
+openclaw-agents = "src.agent_cli:main"
+openclaw-agent-mcp = "src.agent_mcp:main"
 
 [tool.setuptools]
 py-modules = ["cli", "server", "mcp_server", "mastermind_sidecar"]
