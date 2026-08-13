@@ -21,6 +21,7 @@ build/
 .openclaw/watchdog_events.jsonl
 .openclaw/agents_state.json
 .openclaw/agents_config.json
+.openclaw/mesh_state.json
 .openclaw/screenshots/
 
 # Legacy generated baseline
