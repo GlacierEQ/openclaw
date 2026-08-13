@@ -1,31 +1,40 @@
 {
-  "schema": "glaciereq.proof-receipt.v1",
+  "schema": "openclaw.proof-receipt.v2",
   "repository": "GlacierEQ/openclaw",
-  "source_sha": "3c6ea519b99e0fdc1d6f2bdfa288ce0df7c8da016fd5949127d453c8641a4114",
-  "proof_id": "elite-openclaw-1786335149",
-  "environment": {
-    "python": "/Users/kcbflux/job-app/excellence/.venv-elite/bin/python",
-    "PYTHONPATH": "/Users/kcbflux/job-app/repos/openclaw:/Users/kcbflux/job-app/repos/openclaw/src",
-    "entry": "unittest"
+  "source_sha": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+  "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+  "ci": {
+    "run_id": 31750286997,
+    "conclusion": "success",
+    "python": {
+      "3.12": "success",
+      "3.13": "success"
+    },
+    "tests": "15 passed",
+    "runtime_proof": "PASS",
+    "dependency_check": "PASS",
+    "docker_build": "PASS"
   },
-  "tests": [
-    "/Users/kcbflux/job-app/excellence/.venv-elite/bin/python -m unittest discover -s tests -v (x2)"
-  ],
-  "adversarial_tests": [
-    "tests/test_adversarial.py"
-  ],
-  "runtime": {
-    "operate": "scripts/operate.py (x2)",
-    "dual_run_ok": true,
-    "proof_dual_run_ok": true
+  "runtime_proof_checks": {
+    "integrity_initial_scan": true,
+    "integrity_detects_change": true,
+    "policy_denies_unknown": true,
+    "backend_receipt_executes": true,
+    "idempotency_replays_without_execution": true,
+    "audit_chain_verifies": true,
+    "missing_backend_fails_closed": true
   },
-  "result": "PASS",
+  "host_observation": {
+    "ci_runner_backend": "unavailable",
+    "ci_runner_backend_available": false,
+    "actual_user_host": "NOT_OBSERVED",
+    "live_deployment_receipt": false
+  },
+  "claim_ceiling": "CI_VERIFIED_RUNTIME_COMPLETE_HOST_UNDEPLOYED",
   "limitations": [
-    "not production deployed",
-    "reference implementation only"
+    "The deterministic proof backend validates the execution contract but is not a production desktop or browser host.",
+    "The Docker image was built successfully in CI but no live container deployment is claimed.",
+    "A live host requires an explicit Playwright/CDP or PyAutoGUI backend activation receipt."
   ],
-  "timestamp": "2026-08-10T04:12Z",
-  "artifact_hashes": {
-    "operability_receipt": "ae3f759defc6831c20bdccb6492264bf4b24b3f75fb4fe0d17183bf918f0c54e"
-  }
+  "verified_at": "2026-08-13T22:32:18Z"
 }
