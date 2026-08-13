@@ -8,8 +8,12 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from .action_runtime import ActionBackend, BackendResult, DryRunBackend, NullBackend, SlidingWindowRateLimiter, choose_backend
-from .audit_ledger import AuditLedger, redact_value, safe_target
+try:
+    from .action_runtime import ActionBackend, BackendResult, DryRunBackend, NullBackend, SlidingWindowRateLimiter, choose_backend
+    from .audit_ledger import AuditLedger, redact_value, safe_target
+except ImportError:  # compatibility when imported as top-level module via PYTHONPATH=src
+    from src.action_runtime import ActionBackend, BackendResult, DryRunBackend, NullBackend, SlidingWindowRateLimiter, choose_backend
+    from src.audit_ledger import AuditLedger, redact_value, safe_target
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "OPENCLAW_CONFIG.json"
 
@@ -211,10 +215,7 @@ class OpenClawEngine:
             {"viewport": [int(viewport[0]), int(viewport[1])]},
             source="vision",
         )
-        return {
-            **result,
-            "viewport_dimensions": [int(viewport[0]), int(viewport[1])],
-        }
+        return {**result, "viewport_dimensions": [int(viewport[0]), int(viewport[1])]}
 
     def get_audit_trail(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         return self.ledger.records(limit=limit)
@@ -235,14 +236,7 @@ class OpenClawEngine:
         }
 
 
-__all__ = [
-    "OpenClawEngine",
-    "ActionBackend",
-    "BackendResult",
-    "DryRunBackend",
-    "NullBackend",
-]
-
+__all__ = ["OpenClawEngine", "ActionBackend", "BackendResult", "DryRunBackend", "NullBackend"]
 
 if __name__ == "__main__":
     engine = OpenClawEngine()
