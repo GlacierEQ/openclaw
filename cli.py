@@ -106,7 +106,7 @@ def cmd_agents(args):
 
 
 def cmd_mesh(args):
-    from src.mesh_intelligence import MeshIntelligence
+    from src.mesh_runtime import MeshIntelligence
 
     if args.mesh_action == "cloud":
         from src.cloud_storage import create_cloud_manager
@@ -129,14 +129,12 @@ def cmd_mesh(args):
             emit(manager.get_status())
         elif args.cloud_action == "sync":
             mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
-            emit(manager.sync_knowledge(mesh.knowledge))
+            emit(manager.sync_knowledge(mesh.store.export()))
         return
 
-    mesh = MeshIntelligence(args.node_id or "kcbflux-mesh")
+    mesh = MeshIntelligence(args.node_id or "kcbflux-mesh", port=getattr(args, "port", 8090) or 8090)
     if args.mesh_action == "start":
         mesh.start()
-        if args.port:
-            mesh.node.port = args.port
         emit(mesh.get_status())
         try:
             while True:
@@ -147,8 +145,8 @@ def cmd_mesh(args):
         emit(mesh.get_status())
     elif args.mesh_action == "store":
         value = json.loads(args.value) if args.value else {}
-        mesh.store_knowledge(args.key, value, args.tags.split(",") if args.tags else [])
-        emit({"status": "stored", "key": args.key})
+        entry = mesh.store_knowledge(args.key, value, args.tags.split(",") if args.tags else [])
+        emit({"status": "stored", "entry": entry.to_dict()})
     elif args.mesh_action == "get":
         value = mesh.get_knowledge(args.key)
         emit({"key": args.key, "found": value is not None, "value": value})
@@ -225,7 +223,7 @@ def build_parser() -> argparse.ArgumentParser:
     agent_report = agent_sub.add_parser("report")
     agent_report.set_defaults(func=cmd_agents)
 
-    mesh = sub.add_parser("mesh", help="Mesh intelligence")
+    mesh = sub.add_parser("mesh", help="Authenticated mesh intelligence")
     mesh_sub = mesh.add_subparsers(dest="mesh_action", required=True)
     mesh_start = mesh_sub.add_parser("start")
     mesh_start.add_argument("--node-id")
