@@ -15,16 +15,29 @@
     "host_backend_activated": false
   },
   "verification": {
-    "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
-    "ci_run_id": 31750286997,
+    "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
+    "ci_run_id": 31751451510,
     "ci_conclusion": "success",
     "python_matrix": ["3.12", "3.13"],
-    "tests": "15 passed",
+    "tests": "29 passed",
     "runtime_proof": "PASS",
     "dependency_check": "PASS",
     "docker_build": "PASS",
-    "verified_at": "2026-08-13T22:32:18Z"
+    "verified_at": "2026-08-13T22:49:32Z"
   },
+  "implemented_surfaces": [
+    "controlled action runtime",
+    "file integrity watchdog",
+    "persistent audit ledger",
+    "REST API",
+    "MCP stdio/http",
+    "agent routing",
+    "cloud configuration and sync",
+    "authenticated mesh runtime",
+    "mobile handler runtime",
+    "CLI",
+    "Docker packaging"
+  ],
   "nonclaims": [
     "no employer affiliation",
     "no live host or desktop/browser backend deployment without a host receipt",
@@ -35,9 +48,5 @@
     "repository_runtime": "COMPLETE_AND_CI_VERIFIED",
     "host_activation": "PENDING_EXTERNAL_HOST",
     "live_deployment": "PENDING_EXTERNAL_HOST"
-  },
-  "donor_plan": {
-    "mode": "resolved",
-    "donors": []
   }
 }
