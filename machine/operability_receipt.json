@@ -1,31 +1,23 @@
 {
-  "schema": "glaciereq.operability-receipt.v1",
+  "schema": "openclaw.operability-receipt.v2",
   "repository": "GlacierEQ/openclaw",
-  "at": "2026-08-10T04:12Z",
-  "source_sha": "3c6ea519b99e0fdc1d6f2bdfa288ce0df7c8da016fd5949127d453c8641a4114",
-  "entry": "scripts/operate.py",
-  "primary_output": {
-    "module": "openclaw",
-    "ok": true,
-    "repository": "GlacierEQ/openclaw",
-    "smoke": {
-      "args": [
-        "'sample_action_type'",
-        "'sample_target'"
-      ],
-      "content_checked": true,
-      "invoked": true,
-      "kind": "class",
-      "method": "execute_action",
-      "module_local": true,
-      "name": "OpenClawEngine",
-      "result": {
-        "action_type": "sample_action_type",
-        "reason": "Action type 'sample_action_type' not permitted by OpenClaw policy governor.",
-        "status": "DENIED_BY_AKOS_POLICY"
-      }
-    }
+  "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+  "ci_run_id": 31750286997,
+  "result": "PASS",
+  "checks": {
+    "python_3_12": "PASS",
+    "python_3_13": "PASS",
+    "tests": "15 passed",
+    "compile": "PASS",
+    "runtime_proof": "PASS",
+    "dependency_consistency": "PASS",
+    "docker_image_build": "PASS"
   },
-  "dual_run_ok": true,
-  "result": "PASS"
+  "deployment": {
+    "ci_host_adapter": "NOT_CONFIGURED",
+    "user_host": "NOT_OBSERVED",
+    "live_service": "NOT_DEPLOYED"
+  },
+  "claim_ceiling": "CI_VERIFIED_RUNTIME_COMPLETE_HOST_UNDEPLOYED",
+  "verified_at": "2026-08-13T22:32:18Z"
 }
