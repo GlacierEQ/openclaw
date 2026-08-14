@@ -1,25 +1,25 @@
 {
-  "schema": "openclaw.capabilities.v2",
+  "schema": "openclaw.capabilities.v3",
   "repository": "GlacierEQ/openclaw",
-  "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
+  "version": "3.2.0",
+  "verified_code_commit": "aa75cc204c4a7ab1fdf2b499ec2ef3440f4de346",
+  "ci_run_id": 31757191501,
   "capabilities": [
-    "policy_governed_computer_user_actions",
-    "fail_closed_execution_backends",
-    "persistent_hash_chained_action_audit",
-    "sha256_file_integrity_monitoring",
-    "authenticated_rest_control_plane",
-    "mcp_jsonrpc_stdio_and_http",
-    "host_observed_agent_routing",
-    "secretless_cloud_configuration",
-    "authenticated_lan_mesh_runtime",
-    "persistent_mesh_knowledge_store",
-    "truth_bounded_mobile_task_runtime",
-    "docker_packaging_and_ci_proof"
+    "governed_action_runtime",
+    "persistent_audit_chain",
+    "file_integrity_monitoring",
+    "authenticated_rest_and_mcp",
+    "dynamic_model_discovery",
+    "free_first_model_routing",
+    "parallel_model_fanout",
+    "cloud_sync",
+    "authenticated_mesh_runtime",
+    "mobile_task_runtime",
+    "foundation_invariant_gate",
+    "wheel_and_docker_packaging"
   ],
   "nonclaims": [
-    "hyper-scaling",
-    "live production host deployment",
-    "unobserved hardware acceleration",
-    "fabricated inference output"
+    "live_host_deployment",
+    "unobserved_hardware_acceleration"
   ]
 }
