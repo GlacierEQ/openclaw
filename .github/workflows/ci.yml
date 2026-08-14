@@ -27,6 +27,8 @@ jobs:
           python -m pip install -e '.[dev]'
       - name: Compile
         run: python -m compileall -q src cli.py server.py mcp_server.py scripts tests
+      - name: Foundation invariants
+        run: python scripts/foundation_check.py
       - name: Tests
         run: python -m pytest
       - name: Runtime proof
