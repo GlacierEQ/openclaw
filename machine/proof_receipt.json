@@ -1,20 +1,28 @@
 {
-  "schema": "openclaw.proof-receipt.v2",
+  "schema": "openclaw.proof-receipt.v3",
   "repository": "GlacierEQ/openclaw",
-  "source_sha": "baa252a7e828a40de1e027edf253b6bc30f61e60",
-  "verified_code_commit": "baa252a7e828a40de1e027edf253b6bc30f61e60",
+  "source_sha": "aa75cc204c4a7ab1fdf2b499ec2ef3440f4de346",
+  "verified_code_commit": "aa75cc204c4a7ab1fdf2b499ec2ef3440f4de346",
   "ci": {
-    "run_id": 31750286997,
+    "run_id": 31757191501,
     "conclusion": "success",
-    "python": {
-      "3.12": "success",
-      "3.13": "success"
-    },
-    "tests": "15 passed",
+    "python": {"3.12": "success", "3.13": "success"},
+    "tests": "39 passed",
+    "foundation_invariants": "PASS",
     "runtime_proof": "PASS",
     "dependency_check": "PASS",
+    "wheel_build": "PASS",
     "docker_build": "PASS"
   },
+  "foundation_checks": [
+    "version_consistency",
+    "loopback_defaults",
+    "authentication_defaults",
+    "runtime_state_hygiene",
+    "single_mesh_implementation",
+    "entrypoint_integrity",
+    "dependency_authority"
+  ],
   "runtime_proof_checks": {
     "integrity_initial_scan": true,
     "integrity_detects_change": true,
@@ -30,11 +38,6 @@
     "actual_user_host": "NOT_OBSERVED",
     "live_deployment_receipt": false
   },
-  "claim_ceiling": "CI_VERIFIED_RUNTIME_COMPLETE_HOST_UNDEPLOYED",
-  "limitations": [
-    "The deterministic proof backend validates the execution contract but is not a production desktop or browser host.",
-    "The Docker image was built successfully in CI but no live container deployment is claimed.",
-    "A live host requires an explicit Playwright/CDP or PyAutoGUI backend activation receipt."
-  ],
-  "verified_at": "2026-08-13T22:32:18Z"
+  "claim_ceiling": "CI_VERIFIED_FOUNDATION_AND_RUNTIME_HOST_UNDEPLOYED",
+  "verified_at": "2026-08-14T00:24:30Z"
 }
