@@ -40,12 +40,21 @@ def main() -> None:
     ]
     require(not any(path.exists() for path in forbidden_state), "host-local runtime state is committed")
 
+    legacy_baseline = ROOT / ".integrity" / "file_hashes.json"
+    if legacy_baseline.exists():
+        baseline = json.loads(legacy_baseline.read_text(encoding="utf-8"))
+        require(baseline.get("fingerprints") == {}, "legacy integrity template must never contain host fingerprints")
+
     mesh_compat = ROOT / "src" / "mesh_intelligence.py"
     require(mesh_compat.stat().st_size < 2000, "legacy mesh implementation returned; canonical runtime must stay singular")
 
     scripts = pyproject["project"].get("scripts", {})
     required_scripts = {"openclaw", "openclaw-api", "openclaw-mcp", "openclaw-agents", "openclaw-agent-mcp"}
     require(required_scripts <= set(scripts), "required installed entry points missing")
+
+    requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+    effective_lines = [line.strip() for line in requirements.splitlines() if line.strip() and not line.lstrip().startswith("#")]
+    require(effective_lines == ["-e .[dev]"], "requirements.txt duplicated dependency authority")
 
     print(json.dumps({
         "schema": "openclaw.foundation-check.v1",
@@ -58,6 +67,7 @@ def main() -> None:
             "runtime_state_hygiene",
             "single_mesh_implementation",
             "entrypoint_integrity",
+            "dependency_authority",
         ],
     }, indent=2, sort_keys=True))
 
