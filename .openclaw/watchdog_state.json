@@ -1,6 +1,0 @@
-{
-  "schema": "openclaw.integrity-state.v1",
-  "fingerprints": {},
-  "last_scan": null,
-  "note": "Template only. Runtime state is host-local and ignored by source control."
-}
