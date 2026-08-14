@@ -1,29 +1,33 @@
 {
-  "schema": "glaciereq.repo-target-contract.v2",
+  "schema": "glaciereq.repo-target-contract.v3",
   "identity": {
     "repository_id": "GlacierEQ/openclaw",
     "family": "elite-estate",
-    "canonical_position": "GlacierEQ/openclaw"
+    "canonical_position": "GlacierEQ/openclaw",
+    "version": "3.2.0"
   },
   "current": {
-    "state": "RUNTIME_COMPLETE_HOST_UNDEPLOYED",
+    "state": "FOUNDATION_AND_RUNTIME_COMPLETE_HOST_UNDEPLOYED",
     "implemented": true,
     "tested": true,
     "packaged": true,
+    "wheel_build_verified": true,
     "docker_build_verified": true,
     "deployed": false,
     "host_backend_activated": false
   },
   "verification": {
-    "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
-    "ci_run_id": 31751451510,
+    "verified_code_commit": "aa75cc204c4a7ab1fdf2b499ec2ef3440f4de346",
+    "ci_run_id": 31757191501,
     "ci_conclusion": "success",
     "python_matrix": ["3.12", "3.13"],
-    "tests": "29 passed",
+    "tests": "39 passed",
+    "foundation_invariants": "PASS",
     "runtime_proof": "PASS",
     "dependency_check": "PASS",
+    "wheel_build": "PASS",
     "docker_build": "PASS",
-    "verified_at": "2026-08-13T22:49:32Z"
+    "verified_at": "2026-08-14T00:24:30Z"
   },
   "implemented_surfaces": [
     "controlled action runtime",
@@ -31,20 +35,23 @@
     "persistent audit ledger",
     "REST API",
     "MCP stdio/http",
-    "agent routing",
+    "free-first model fabric",
+    "agent routing and fanout",
     "cloud configuration and sync",
     "authenticated mesh runtime",
     "mobile handler runtime",
-    "CLI",
-    "Docker packaging"
+    "installed CLI entrypoints",
+    "wheel packaging",
+    "Docker packaging",
+    "machine-enforced foundation invariants"
   ],
   "nonclaims": [
-    "no employer affiliation",
     "no live host or desktop/browser backend deployment without a host receipt",
     "deterministic proof backend is not production-host execution",
     "docker image build is not a deployment receipt"
   ],
   "completion_boundary": {
+    "repository_foundation": "COMPLETE_AND_CI_VERIFIED",
     "repository_runtime": "COMPLETE_AND_CI_VERIFIED",
     "host_activation": "PENDING_EXTERNAL_HOST",
     "live_deployment": "PENDING_EXTERNAL_HOST"
