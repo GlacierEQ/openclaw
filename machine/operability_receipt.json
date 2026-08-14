@@ -1,21 +1,23 @@
 {
-  "schema": "openclaw.operability-receipt.v2",
+  "schema": "openclaw.operability-receipt.v3",
   "repository": "GlacierEQ/openclaw",
-  "verified_code_commit": "39afaf8281edc625cb4c1a4663fcb07cbebeee10",
-  "ci_run_id": 31751451510,
+  "verified_code_commit": "aa75cc204c4a7ab1fdf2b499ec2ef3440f4de346",
+  "ci_run_id": 31757191501,
   "result": "PASS",
   "checks": {
     "python_3_12": "PASS",
     "python_3_13": "PASS",
-    "tests": "29 passed",
+    "tests": "39 passed",
     "compile": "PASS",
+    "foundation_invariants": "PASS",
     "runtime_proof": "PASS",
     "dependency_consistency": "PASS",
+    "wheel_build": "PASS",
     "docker_image_build": "PASS"
   },
   "deployment": {
     "user_host": "NOT_OBSERVED",
     "live_service": "NOT_DEPLOYED"
   },
-  "claim_ceiling": "CI_VERIFIED_RUNTIME_COMPLETE_HOST_UNDEPLOYED"
+  "claim_ceiling": "CI_VERIFIED_FOUNDATION_AND_RUNTIME_HOST_UNDEPLOYED"
 }
