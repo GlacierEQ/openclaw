@@ -35,12 +35,18 @@ python scripts/operate.py
 openclaw-agents discover
 openclaw-agents list --filter free
 openclaw-agents test
-openclaw-agents route --prompt "Find the bug and propose the smallest correct patch"
-openclaw-agents fanout --prompt "Review this design adversarially" --max-agents 0 --mode review
-openclaw-agents query --agent ollama-omni-agent_latest --prompt "Implement the parser"
+openclaw-agents route --prompt "Find the bug and propose the strongest coherent correct patch that preserves existing capability"
+openclaw-agents fanout --prompt "Review this design adversarially and identify the highest-leverage capability improvements" --max-agents 0 --mode review
+openclaw-agents query --agent ollama-omni-agent_latest --prompt "Implement the parser as production-quality, elite humanized engineering with complete material failure handling"
 ```
 
 `--max-agents 0` means every discovered free endpoint. Fanout is intended for independent planning/review/reasoning; it does not pretend several models are the same agent.
+
+## Engineering direction
+
+OpenClaw prompts and routed agents should default to **maximum coherent capability**, not minimum-change doctrine. Small diffs are acceptable when the problem itself is small; they are not a quality target.
+
+Agents should preserve useful existing behavior, search for compatible capability donors, implement the strongest coherent tranche justified by the objective, test integration and failure paths, and avoid translating `full`, `powerful`, `elite`, `complete`, `build up`, `innovate`, or similar Operator direction into MVP/smallest/safest scope.
 
 ## Ollama and GlacierEQ models
 
