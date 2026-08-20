@@ -32,6 +32,11 @@ def test_missing_backend_fails_closed(tmp_path):
     result = engine.execute_action("click", "button.submit", coords=(10, 20))
     assert result["status"] == "OPENCLAW_BACKEND_UNAVAILABLE"
     assert result["executed"] is False
+    continuation = result["continuation"]
+    assert continuation["kind"] == "host_activation"
+    assert continuation["capability"] == "real execution backend"
+    assert continuation["external_action_authorized"] is False
+    assert "register_desktop_or_browser_host_adapter" in continuation["next_actions"]
 
 
 def test_policy_denial_is_not_execution(tmp_path):
