@@ -75,7 +75,15 @@ class OpenClawEngine:
     def action_history(self) -> List[Dict[str, Any]]:
         return self.get_audit_trail()
 
-    def _deny(self, status: str, reason: str, action_type: str, *, idempotency_key: Optional[str] = None) -> Dict[str, Any]:
+    def _deny(
+        self,
+        status: str,
+        reason: str,
+        action_type: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        continuation: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         payload = {
             "kind": "action-denial",
             "event_id": f"CLAW-{uuid.uuid4().hex[:16]}",
@@ -84,6 +92,7 @@ class OpenClawEngine:
             "status": status,
             "reason": reason,
             "idempotency_key": idempotency_key,
+            "continuation": continuation,
         }
         record = self.ledger.append(payload)
         return {
@@ -93,6 +102,7 @@ class OpenClawEngine:
             "action_type": action_type,
             "event_id": payload["event_id"],
             "audit_record_hash": record["record_hash"],
+            "continuation": continuation,
         }
 
     def execute_action(
@@ -146,6 +156,17 @@ class OpenClawEngine:
                 "No real execution backend is configured on this host.",
                 action_type,
                 idempotency_key=idempotency_key,
+                continuation={
+                    "kind": "host_activation",
+                    "capability": "real execution backend",
+                    "action_type": action_type,
+                    "next_actions": [
+                        "register_desktop_or_browser_host_adapter",
+                        "verify_backend_health_and_supported_actions",
+                        "retry_with_a_new_idempotency_key_after_host_activation",
+                    ],
+                    "external_action_authorized": False,
+                },
             )
         if not self.backend.supports(action_type):
             return self._deny(
