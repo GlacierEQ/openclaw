@@ -7,17 +7,31 @@ import os
 import threading
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlsplit, urlunsplit
 
 _SENSITIVE_KEYS = {
-    "password", "passwd", "secret", "token", "api_key", "apikey", "authorization",
-    "cookie", "cookies", "text", "value", "content", "prompt", "message",
+    "password",
+    "passwd",
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "authorization",
+    "cookie",
+    "cookies",
+    "text",
+    "value",
+    "content",
+    "prompt",
+    "message",
 }
 
 
 def _canonical(value: Any) -> bytes:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
 
 
 def _digest(value: Any) -> str:
@@ -28,7 +42,11 @@ def redact_value(value: Any, key: str = "") -> Any:
     key_l = key.lower()
     if any(marker in key_l for marker in _SENSITIVE_KEYS):
         raw = str(value)
-        return {"redacted": True, "length": len(raw), "sha256": hashlib.sha256(raw.encode()).hexdigest()}
+        return {
+            "redacted": True,
+            "length": len(raw),
+            "sha256": hashlib.sha256(raw.encode()).hexdigest(),
+        }
     if isinstance(value, dict):
         return {str(k): redact_value(v, str(k)) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -61,7 +79,11 @@ class AuditLedger:
     HMAC verification provides operator-authenticated integrity.
     """
 
-    def __init__(self, path: str = ".openclaw/action_audit.jsonl", secret_env: str = "OPENCLAW_AUDIT_SECRET"):
+    def __init__(
+        self,
+        path: str = ".openclaw/action_audit.jsonl",
+        secret_env: str = "OPENCLAW_AUDIT_SECRET",
+    ):
         self.path = Path(path)
         self.secret_env = secret_env
         self._lock = threading.Lock()
@@ -75,7 +97,11 @@ class AuditLedger:
         if not self.path.exists():
             return "0" * 64
         try:
-            lines = [line for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            lines = [
+                line
+                for line in self.path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
             if not lines:
                 return "0" * 64
             return str(json.loads(lines[-1])["record_hash"])
@@ -96,7 +122,11 @@ class AuditLedger:
             secret = self._secret()
             record = dict(base)
             record["record_hash"] = record_hash
-            record["mac"] = hmac.new(secret, record_hash.encode(), hashlib.sha256).hexdigest() if secret else None
+            record["mac"] = (
+                hmac.new(secret, record_hash.encode(), hashlib.sha256).hexdigest()
+                if secret
+                else None
+            )
             self.path.parent.mkdir(parents=True, exist_ok=True)
             with self.path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
@@ -109,7 +139,11 @@ class AuditLedger:
         if not self.path.exists():
             return []
         try:
-            rows = [json.loads(line) for line in self.path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            rows = [
+                json.loads(line)
+                for line in self.path.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
         except Exception:
             return []
         return rows[-limit:] if limit else rows
@@ -120,7 +154,12 @@ class AuditLedger:
         secret = self._secret()
         for index, record in enumerate(self.records(), start=1):
             if record.get("prev_hash") != previous:
-                return {"ok": False, "records": count, "error": "CHAIN_BREAK", "index": index}
+                return {
+                    "ok": False,
+                    "records": count,
+                    "error": "CHAIN_BREAK",
+                    "index": index,
+                }
             base = {
                 "schema": record.get("schema"),
                 "timestamp": record.get("timestamp"),
@@ -129,20 +168,40 @@ class AuditLedger:
             }
             expected = _digest(base)
             if not hmac.compare_digest(expected, str(record.get("record_hash", ""))):
-                return {"ok": False, "records": count, "error": "HASH_MISMATCH", "index": index}
+                return {
+                    "ok": False,
+                    "records": count,
+                    "error": "HASH_MISMATCH",
+                    "index": index,
+                }
             mac = record.get("mac")
             if secret and mac:
-                expected_mac = hmac.new(secret, expected.encode(), hashlib.sha256).hexdigest()
+                expected_mac = hmac.new(
+                    secret, expected.encode(), hashlib.sha256
+                ).hexdigest()
                 if not hmac.compare_digest(expected_mac, str(mac)):
-                    return {"ok": False, "records": count, "error": "MAC_MISMATCH", "index": index}
+                    return {
+                        "ok": False,
+                        "records": count,
+                        "error": "MAC_MISMATCH",
+                        "index": index,
+                    }
             previous = expected
             count += 1
-        return {"ok": True, "records": count, "head": previous, "hmac_enabled": bool(secret)}
+        return {
+            "ok": True,
+            "records": count,
+            "head": previous,
+            "hmac_enabled": bool(secret),
+        }
 
     def find_idempotency(self, key: str) -> Optional[Dict[str, Any]]:
         for record in reversed(self.records()):
             payload = record.get("payload", {})
-            if payload.get("kind") == "action" and payload.get("idempotency_key") == key:
+            if (
+                payload.get("kind") == "action"
+                and payload.get("idempotency_key") == key
+            ):
                 return record
         return None
 

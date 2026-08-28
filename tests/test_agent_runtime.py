@@ -8,7 +8,9 @@ from src.model_fabric import ModelEndpoint, ModelFabric
 
 
 def install_discovered_endpoint(monkeypatch):
-    endpoint = ModelEndpoint("real-agent", "ollama", "real:latest", "http://local", free=True, local=True)
+    endpoint = ModelEndpoint(
+        "real-agent", "ollama", "real:latest", "http://local", free=True, local=True
+    )
 
     def fake_discover(self):
         self.endpoints = {endpoint.endpoint_id: endpoint}
@@ -21,11 +23,15 @@ def install_discovered_endpoint(monkeypatch):
 def test_recent_observation_state_is_loaded(tmp_path, monkeypatch):
     install_discovered_endpoint(monkeypatch)
     path = tmp_path / "agents_state.json"
-    path.write_text(json.dumps({
-        "observed_at": time.time(),
-        "statuses": {"real-agent": {"status": "verified", "verified": True}},
-        "test_results": {"real-agent": {"status": "verified"}},
-    }))
+    path.write_text(
+        json.dumps(
+            {
+                "observed_at": time.time(),
+                "statuses": {"real-agent": {"status": "verified", "verified": True}},
+                "test_results": {"real-agent": {"status": "verified"}},
+            }
+        )
+    )
     hub = RuntimeAgentHub(str(path), state_ttl_s=60)
     assert hub.agents["real-agent"].status == "verified"
     assert hub.agents["real-agent"].verified is True
@@ -35,10 +41,14 @@ def test_recent_observation_state_is_loaded(tmp_path, monkeypatch):
 def test_stale_observation_state_is_not_loaded(tmp_path, monkeypatch):
     install_discovered_endpoint(monkeypatch)
     path = tmp_path / "agents_state.json"
-    path.write_text(json.dumps({
-        "observed_at": time.time() - 1000,
-        "statuses": {"real-agent": {"status": "verified", "verified": True}},
-    }))
+    path.write_text(
+        json.dumps(
+            {
+                "observed_at": time.time() - 1000,
+                "statuses": {"real-agent": {"status": "verified", "verified": True}},
+            }
+        )
+    )
     hub = RuntimeAgentHub(str(path), state_ttl_s=10)
     assert hub.agents["real-agent"].status == "untested"
     assert hub.agents["real-agent"].verified is False

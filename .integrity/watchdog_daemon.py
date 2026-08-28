@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Compatibility entry point for the OpenClaw integrity daemon."""
+
 from pathlib import Path
 import sys
 

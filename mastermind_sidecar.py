@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """OpenClaw sidecar presence projection."""
+
 import json
 import time
 
@@ -11,7 +12,7 @@ def get_node_status():
         "status": "PRESENT",
         "latency_ms": round((time.perf_counter() - started) * 1000.0, 3),
         "timestamp": time.time(),
-        "claim": "PROCESS_LOCAL_PRESENCE_ONLY"
+        "claim": "PROCESS_LOCAL_PRESENCE_ONLY",
     }
 
 

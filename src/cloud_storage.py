@@ -5,6 +5,7 @@ Secrets are runtime inputs. They are never persisted in the OpenClaw cloud
 configuration file. Durable configuration stores only provider names, target
 locations, and environment-variable references.
 """
+
 from __future__ import annotations
 
 import base64
@@ -31,7 +32,11 @@ DEFAULT_SECRET_ENVS = {
 
 
 class RateLimiter:
-    def __init__(self, max_requests: int = MAX_REQUESTS_PER_WINDOW, window: float = RATE_LIMIT_WINDOW):
+    def __init__(
+        self,
+        max_requests: int = MAX_REQUESTS_PER_WINDOW,
+        window: float = RATE_LIMIT_WINDOW,
+    ):
         if max_requests <= 0 or window <= 0:
             raise ValueError("rate limit values must be positive")
         self.max_requests = int(max_requests)
@@ -43,7 +48,9 @@ class RateLimiter:
         current = time.monotonic() if now is None else float(now)
         with self._lock:
             cutoff = current - self.window
-            self.requests[key] = [stamp for stamp in self.requests[key] if stamp > cutoff]
+            self.requests[key] = [
+                stamp for stamp in self.requests[key] if stamp > cutoff
+            ]
             if len(self.requests[key]) >= self.max_requests:
                 return False
             self.requests[key].append(current)
@@ -60,12 +67,22 @@ class InputValidator:
 
     @staticmethod
     def validate_token(token: str) -> bool:
-        return isinstance(token, str) and 10 <= len(token) <= 4096 and "\n" not in token and "\r" not in token
+        return (
+            isinstance(token, str)
+            and 10 <= len(token) <= 4096
+            and "\n" not in token
+            and "\r" not in token
+        )
 
     @staticmethod
     def validate_data_size(data: Any) -> bool:
         try:
-            return len(json.dumps(data, separators=(",", ":"), default=str).encode("utf-8")) <= MAX_FILE_SIZE
+            return (
+                len(
+                    json.dumps(data, separators=(",", ":"), default=str).encode("utf-8")
+                )
+                <= MAX_FILE_SIZE
+            )
         except Exception:
             return False
 
@@ -82,7 +99,9 @@ def _request_json(
     body: Optional[bytes] = None,
     timeout: float = 20.0,
 ) -> Any:
-    request = urllib.request.Request(url, data=body, headers=headers or {}, method=method)
+    request = urllib.request.Request(
+        url, data=body, headers=headers or {}, method=method
+    )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read()
@@ -129,28 +148,46 @@ class DropboxBridge:
         return self.connected
 
     def upload(self, path: str, data: Dict[str, Any]) -> bool:
-        if not self.connected or not InputValidator.validate_path(path) or not InputValidator.validate_data_size(data):
+        if (
+            not self.connected
+            or not InputValidator.validate_path(path)
+            or not InputValidator.validate_data_size(data)
+        ):
             return False
         if not self.rate_limiter.is_allowed("upload"):
             return False
         payload = json.dumps(data, indent=2, sort_keys=True).encode("utf-8")
         headers = self._headers(content_type="application/octet-stream")
-        headers["Dropbox-API-Arg"] = json.dumps({"path": path, "mode": "overwrite", "autorename": False})
+        headers["Dropbox-API-Arg"] = json.dumps(
+            {"path": path, "mode": "overwrite", "autorename": False}
+        )
         try:
-            _request_json(f"{self.CONTENT_BASE}/2/files/upload", method="POST", headers=headers, body=payload, timeout=30)
+            _request_json(
+                f"{self.CONTENT_BASE}/2/files/upload",
+                method="POST",
+                headers=headers,
+                body=payload,
+                timeout=30,
+            )
             return True
         except CloudError:
             return False
 
     def download(self, path: str) -> Optional[Dict[str, Any]]:
-        if not self.connected or not InputValidator.validate_path(path) or not self.rate_limiter.is_allowed("download"):
+        if (
+            not self.connected
+            or not InputValidator.validate_path(path)
+            or not self.rate_limiter.is_allowed("download")
+        ):
             return None
         headers = {
             "Authorization": f"Bearer {self.access_token}",
             "Dropbox-API-Arg": json.dumps({"path": path}),
             "User-Agent": "GlacierEQ-OpenClaw/3.1",
         }
-        request = urllib.request.Request(f"{self.CONTENT_BASE}/2/files/download", headers=headers, method="POST")
+        request = urllib.request.Request(
+            f"{self.CONTENT_BASE}/2/files/download", headers=headers, method="POST"
+        )
         try:
             with urllib.request.urlopen(request, timeout=30) as response:
                 return json.loads(response.read().decode("utf-8"))
@@ -179,7 +216,9 @@ class GitHubBridge:
 
     def connect(self) -> bool:
         try:
-            data = _request_json(f"{self.API_BASE}/user", headers=self._headers(), timeout=10)
+            data = _request_json(
+                f"{self.API_BASE}/user", headers=self._headers(), timeout=10
+            )
             self.username = data.get("login") if isinstance(data, dict) else None
             self.connected = bool(self.username)
         except CloudError:
@@ -194,13 +233,25 @@ class GitHubBridge:
             return f"{owner}/{name}" if owner and name else None
         return f"{self.username}/{repo}" if self.username else None
 
-    def upload_file(self, repo: str, path: str, content: Dict[str, Any], message: str = "Update OpenClaw mesh state") -> bool:
-        if not self.connected or not InputValidator.validate_path(path) or not InputValidator.validate_data_size(content):
+    def upload_file(
+        self,
+        repo: str,
+        path: str,
+        content: Dict[str, Any],
+        message: str = "Update OpenClaw mesh state",
+    ) -> bool:
+        if (
+            not self.connected
+            or not InputValidator.validate_path(path)
+            or not InputValidator.validate_data_size(content)
+        ):
             return False
         full_name = self._repo_full_name(repo)
         if not full_name or not self.rate_limiter.is_allowed("upload"):
             return False
-        quoted_path = "/".join(urllib.parse.quote(part, safe="") for part in path.strip("/").split("/"))
+        quoted_path = "/".join(
+            urllib.parse.quote(part, safe="") for part in path.strip("/").split("/")
+        )
         url = f"{self.API_BASE}/repos/{full_name}/contents/{quoted_path}"
         sha: Optional[str] = None
         try:
@@ -211,29 +262,51 @@ class GitHubBridge:
             pass
         payload: Dict[str, Any] = {
             "message": message,
-            "content": base64.b64encode(json.dumps(content, indent=2, sort_keys=True).encode("utf-8")).decode("ascii"),
+            "content": base64.b64encode(
+                json.dumps(content, indent=2, sort_keys=True).encode("utf-8")
+            ).decode("ascii"),
         }
         if sha:
             payload["sha"] = sha
         headers = self._headers()
         headers["Content-Type"] = "application/json"
         try:
-            _request_json(url, method="PUT", headers=headers, body=json.dumps(payload).encode("utf-8"), timeout=30)
+            _request_json(
+                url,
+                method="PUT",
+                headers=headers,
+                body=json.dumps(payload).encode("utf-8"),
+                timeout=30,
+            )
             return True
         except CloudError:
             return False
 
     def download_file(self, repo: str, path: str) -> Optional[Dict[str, Any]]:
-        if not self.connected or not InputValidator.validate_path(path) or not self.rate_limiter.is_allowed("download"):
+        if (
+            not self.connected
+            or not InputValidator.validate_path(path)
+            or not self.rate_limiter.is_allowed("download")
+        ):
             return None
         full_name = self._repo_full_name(repo)
         if not full_name:
             return None
-        quoted_path = "/".join(urllib.parse.quote(part, safe="") for part in path.strip("/").split("/"))
+        quoted_path = "/".join(
+            urllib.parse.quote(part, safe="") for part in path.strip("/").split("/")
+        )
         try:
-            data = _request_json(f"{self.API_BASE}/repos/{full_name}/contents/{quoted_path}", headers=self._headers(), timeout=10)
+            data = _request_json(
+                f"{self.API_BASE}/repos/{full_name}/contents/{quoted_path}",
+                headers=self._headers(),
+                timeout=10,
+            )
             encoded = data.get("content", "") if isinstance(data, dict) else ""
-            return json.loads(base64.b64decode(encoded).decode("utf-8")) if encoded else None
+            return (
+                json.loads(base64.b64decode(encoded).decode("utf-8"))
+                if encoded
+                else None
+            )
         except (CloudError, ValueError, TypeError):
             return None
 
@@ -242,7 +315,9 @@ class CloudStorageManager:
     """Provider manager with metadata-only durable configuration."""
 
     def __init__(self, config_path: Optional[str] = None):
-        self.config_path = Path(config_path or "~/.glaciereq/mesh/cloud.json").expanduser()
+        self.config_path = Path(
+            config_path or "~/.glaciereq/mesh/cloud.json"
+        ).expanduser()
         self.configs: Dict[str, Dict[str, Any]] = {}
         self.bridges: Dict[str, Any] = {}
         self._runtime_secrets: Dict[str, str] = {}
@@ -260,7 +335,11 @@ class CloudStorageManager:
 
     def _save_config(self) -> None:
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        fd, temp_name = tempfile.mkstemp(prefix=self.config_path.name + ".", dir=str(self.config_path.parent), text=True)
+        fd, temp_name = tempfile.mkstemp(
+            prefix=self.config_path.name + ".",
+            dir=str(self.config_path.parent),
+            text=True,
+        )
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
                 json.dump(self.configs, handle, indent=2, sort_keys=True)
@@ -277,7 +356,10 @@ class CloudStorageManager:
     def _credential_for(self, provider: str) -> Optional[str]:
         if provider in self._runtime_secrets:
             return self._runtime_secrets[provider]
-        env_name = str(self.configs.get(provider, {}).get("credential_env") or DEFAULT_SECRET_ENVS.get(provider, ""))
+        env_name = str(
+            self.configs.get(provider, {}).get("credential_env")
+            or DEFAULT_SECRET_ENVS.get(provider, "")
+        )
         return os.getenv(env_name) if env_name else None
 
     def _make_bridge(self, provider: str, secret: str):
@@ -322,7 +404,12 @@ class CloudStorageManager:
             self.bridges.pop(provider, None)
         return True
 
-    def add_provider(self, provider: str, credentials: Dict[str, str], target: Optional[Dict[str, str]] = None) -> bool:
+    def add_provider(
+        self,
+        provider: str,
+        credentials: Dict[str, str],
+        target: Optional[Dict[str, str]] = None,
+    ) -> bool:
         """Compatibility helper. Credentials are memory-only and are never written to disk."""
         if provider not in DEFAULT_SECRET_ENVS:
             return False
@@ -368,11 +455,18 @@ class CloudStorageManager:
             target = config.get("target", {})
             if provider == "dropbox":
                 path = str(target.get("path", "/GlacierEQ/Mesh/knowledge.json"))
-                results[provider] = bool(bridge and bridge.connected and bridge.upload(path, knowledge))
+                results[provider] = bool(
+                    bridge and bridge.connected and bridge.upload(path, knowledge)
+                )
             elif provider == "github":
                 repo = str(target.get("repo", ""))
                 path = str(target.get("path", "mesh/knowledge.json"))
-                results[provider] = bool(bridge and bridge.connected and repo and bridge.upload_file(repo, path, knowledge))
+                results[provider] = bool(
+                    bridge
+                    and bridge.connected
+                    and repo
+                    and bridge.upload_file(repo, path, knowledge)
+                )
             else:
                 results[provider] = False
             if results[provider]:
@@ -386,7 +480,9 @@ class CloudStorageManager:
                 "enabled": config.get("enabled", True),
                 "credential_env": config.get("credential_env"),
                 "credential_available": bool(self._credential_for(provider)),
-                "connected": bool(getattr(self.bridges.get(provider), "connected", False)),
+                "connected": bool(
+                    getattr(self.bridges.get(provider), "connected", False)
+                ),
                 "target": config.get("target", {}),
                 "last_sync": config.get("last_sync", 0),
             }
@@ -394,6 +490,8 @@ class CloudStorageManager:
         }
 
 
-def create_cloud_manager(config_path: Optional[str] = None, master_key: Optional[str] = None) -> CloudStorageManager:
+def create_cloud_manager(
+    config_path: Optional[str] = None, master_key: Optional[str] = None
+) -> CloudStorageManager:
     # master_key is retained only for call-site compatibility; secrets are no longer persisted.
     return CloudStorageManager(config_path)

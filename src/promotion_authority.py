@@ -3,6 +3,7 @@
 The operator secret is never embedded in source. A public reference secret is
 not authority. Set ``OPENCLAW_PROMOTION_SECRET`` or pass a secret explicitly.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -16,10 +17,14 @@ from typing import Optional
 
 
 def _digest(obj: object) -> str:
-    return hashlib.sha256(json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return hashlib.sha256(
+        json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
-def operator_secret(secret: Optional[bytes] = None, env: str = "OPENCLAW_PROMOTION_SECRET") -> Optional[bytes]:
+def operator_secret(
+    secret: Optional[bytes] = None, env: str = "OPENCLAW_PROMOTION_SECRET"
+) -> Optional[bytes]:
     if secret:
         return secret
     value = os.getenv(env)
@@ -35,13 +40,15 @@ class PromotionGrant:
     mac: str
 
     def fingerprint(self) -> str:
-        return _digest({
-            "repository": self.repository,
-            "source_sha": self.source_sha,
-            "proof_receipt_digest": self.proof_receipt_digest,
-            "not_after": self.not_after,
-            "mac": self.mac,
-        })
+        return _digest(
+            {
+                "repository": self.repository,
+                "source_sha": self.source_sha,
+                "proof_receipt_digest": self.proof_receipt_digest,
+                "not_after": self.not_after,
+                "mac": self.mac,
+            }
+        )
 
     @classmethod
     def from_dict(cls, value: dict) -> "PromotionGrant":
@@ -63,16 +70,28 @@ class PromotionAuthority:
         self._secret = bytes(secret)
         self._ttl = float(ttl_s)
 
-    def issue(self, repository: str, source_sha: str, proof_receipt_digest: str, now: Optional[float] = None) -> PromotionGrant:
+    def issue(
+        self,
+        repository: str,
+        source_sha: str,
+        proof_receipt_digest: str,
+        now: Optional[float] = None,
+    ) -> PromotionGrant:
         if not repository or not source_sha or not proof_receipt_digest:
-            raise ValueError("repository, source_sha, and proof_receipt_digest are required")
+            raise ValueError(
+                "repository, source_sha, and proof_receipt_digest are required"
+            )
         current = time.time() if now is None else float(now)
         not_after = current + self._ttl
         body = f"{repository}|{source_sha}|{proof_receipt_digest}|{not_after}"
         mac = hmac.new(self._secret, body.encode(), hashlib.sha256).hexdigest()
-        return PromotionGrant(repository, source_sha, proof_receipt_digest, not_after, mac)
+        return PromotionGrant(
+            repository, source_sha, proof_receipt_digest, not_after, mac
+        )
 
-    def verify(self, grant: PromotionGrant, now: Optional[float] = None) -> tuple[bool, Optional[str]]:
+    def verify(
+        self, grant: PromotionGrant, now: Optional[float] = None
+    ) -> tuple[bool, Optional[str]]:
         current = time.time() if now is None else float(now)
         if current > grant.not_after:
             return False, "GRANT_EXPIRED"
@@ -111,5 +130,8 @@ def verify_bound_grant(
         grant = PromotionGrant.from_dict(grant_dict)
     except Exception:
         return False, "GRANT_MALFORMED"
-    authority = PromotionAuthority(resolved_secret, ttl_s=max(1.0, grant.not_after - (time.time() if now is None else now) + 1.0))
+    authority = PromotionAuthority(
+        resolved_secret,
+        ttl_s=max(1.0, grant.not_after - (time.time() if now is None else now) + 1.0),
+    )
     return authority.verify(grant, now=now)

@@ -1,4 +1,5 @@
 """OpenClaw v3.1 — governed computer-user runtime with truthful execution receipts."""
+
 from __future__ import annotations
 
 import hashlib
@@ -9,10 +10,26 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    from .action_runtime import ActionBackend, BackendResult, DryRunBackend, NullBackend, SlidingWindowRateLimiter, choose_backend
+    from .action_runtime import (
+        ActionBackend,
+        BackendResult,
+        DryRunBackend,
+        NullBackend,
+        SlidingWindowRateLimiter,
+        choose_backend,
+    )
     from .audit_ledger import AuditLedger, redact_value, safe_target
-except ImportError:  # compatibility when imported as top-level module via PYTHONPATH=src
-    from src.action_runtime import ActionBackend, BackendResult, DryRunBackend, NullBackend, SlidingWindowRateLimiter, choose_backend
+except (
+    ImportError
+):  # compatibility when imported as top-level module via PYTHONPATH=src
+    from src.action_runtime import (
+        ActionBackend,
+        BackendResult,
+        DryRunBackend,
+        NullBackend,
+        SlidingWindowRateLimiter,
+        choose_backend,
+    )
     from src.audit_ledger import AuditLedger, redact_value, safe_target
 
 CONFIG_PATH = Path(__file__).resolve().parents[1] / "OPENCLAW_CONFIG.json"
@@ -41,10 +58,16 @@ class OpenClawEngine:
         self._allowed = set(policy.get("allowed_action_types", []))
         self._approval_required = set(policy.get("require_human_approval_for", []))
         self._max_retries = max(1, int(policy.get("max_retry_attempts", 1)))
-        self._limiter = SlidingWindowRateLimiter(max(1, int(policy.get("max_actions_per_second", 20))))
+        self._limiter = SlidingWindowRateLimiter(
+            max(1, int(policy.get("max_actions_per_second", 20)))
+        )
         self.backend: ActionBackend = backend or choose_backend(self.config)
-        ledger_path = audit_file or self.config.get("execution", {}).get("audit_log", ".openclaw/action_audit.jsonl")
-        secret_env = self.config.get("execution", {}).get("audit_secret_env", "OPENCLAW_AUDIT_SECRET")
+        ledger_path = audit_file or self.config.get("execution", {}).get(
+            "audit_log", ".openclaw/action_audit.jsonl"
+        )
+        secret_env = self.config.get("execution", {}).get(
+            "audit_secret_env", "OPENCLAW_AUDIT_SECRET"
+        )
         self.ledger = AuditLedger(str(ledger_path), str(secret_env))
 
     def _load_config(self) -> Dict[str, Any]:
@@ -60,15 +83,27 @@ class OpenClawEngine:
             "openclaw_version": "3.1.0",
             "policy_governor": {
                 "allowed_action_types": [
-                    "click", "type", "scroll", "navigate", "inspect_dom",
-                    "capture_screenshot", "hover", "drag_and_drop", "shortcut",
-                    "key_press", "ocr_read_screen", "vision_sample",
+                    "click",
+                    "type",
+                    "scroll",
+                    "navigate",
+                    "inspect_dom",
+                    "capture_screenshot",
+                    "hover",
+                    "drag_and_drop",
+                    "shortcut",
+                    "key_press",
+                    "ocr_read_screen",
+                    "vision_sample",
                 ],
                 "max_actions_per_second": 20,
                 "max_retry_attempts": 2,
                 "require_human_approval_for": [],
             },
-            "execution": {"backend": "auto", "audit_log": ".openclaw/action_audit.jsonl"},
+            "execution": {
+                "backend": "auto",
+                "audit_log": ".openclaw/action_audit.jsonl",
+            },
         }
 
     @property
@@ -149,7 +184,12 @@ class OpenClawEngine:
                     "audit_record_hash": previous.get("record_hash"),
                 }
         if not self._limiter.allow():
-            return self._deny("RATE_LIMITED", "OpenClaw action rate limit exceeded.", action_type, idempotency_key=idempotency_key)
+            return self._deny(
+                "RATE_LIMITED",
+                "OpenClaw action rate limit exceeded.",
+                action_type,
+                idempotency_key=idempotency_key,
+            )
         if not self.backend.available():
             return self._deny(
                 "OPENCLAW_BACKEND_UNAVAILABLE",
@@ -181,7 +221,10 @@ class OpenClawEngine:
         while attempts < self._max_retries:
             attempts += 1
             result = self.backend.execute(action_type, target, parameters, coords)
-            if result.ok or result.status not in {"EXECUTION_FAILED", "TRANSIENT_ERROR"}:
+            if result.ok or result.status not in {
+                "EXECUTION_FAILED",
+                "TRANSIENT_ERROR",
+            }:
                 break
         assert result is not None
 
@@ -204,7 +247,9 @@ class OpenClawEngine:
             "target": safe_target(target),
             "coordinates": list(coords) if coords else None,
             "parameters": redact_value(parameters),
-            "parameter_digest": hashlib.sha256(json.dumps(parameters, sort_keys=True, default=str).encode()).hexdigest(),
+            "parameter_digest": hashlib.sha256(
+                json.dumps(parameters, sort_keys=True, default=str).encode()
+            ).hexdigest(),
             "idempotency_key": idempotency_key,
             "human_approved": bool(human_approved),
             "backend": result.backend,
@@ -222,14 +267,18 @@ class OpenClawEngine:
         return {
             "status": status,
             "executed": bool(result.executed),
-            "openclaw_version": self.config.get("openclaw_version", self.config.get("version", "3.1.0")),
+            "openclaw_version": self.config.get(
+                "openclaw_version", self.config.get("version", "3.1.0")
+            ),
             "backend": result.backend,
             "event": event,
             "result": result.detail,
             "execution_latency_ms": elapsed_ms,
         }
 
-    def sample_vision_state(self, viewport: Tuple[int, int] = (1920, 1080)) -> Dict[str, Any]:
+    def sample_vision_state(
+        self, viewport: Tuple[int, int] = (1920, 1080)
+    ) -> Dict[str, Any]:
         result = self.execute_action(
             "vision_sample",
             "viewport",
@@ -257,7 +306,13 @@ class OpenClawEngine:
         }
 
 
-__all__ = ["OpenClawEngine", "ActionBackend", "BackendResult", "DryRunBackend", "NullBackend"]
+__all__ = [
+    "OpenClawEngine",
+    "ActionBackend",
+    "BackendResult",
+    "DryRunBackend",
+    "NullBackend",
+]
 
 if __name__ == "__main__":
     engine = OpenClawEngine()

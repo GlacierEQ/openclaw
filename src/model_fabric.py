@@ -3,6 +3,7 @@
 The fabric executes real HTTP model calls and dynamically discovers local and
 free endpoints. Secrets are referenced by environment-variable name only.
 """
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -13,7 +14,7 @@ import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, List, Optional
 
 
 KILO_GATEWAY = "https://api.kilo.ai/api/gateway"
@@ -55,7 +56,9 @@ def _request_json(
     }
     if payload is not None:
         request_headers.setdefault("Content-Type", "application/json")
-    request = urllib.request.Request(url, data=payload, headers=request_headers, method=method)
+    request = urllib.request.Request(
+        url, data=payload, headers=request_headers, method=method
+    )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             raw = response.read()
@@ -68,9 +71,15 @@ def _request_json(
 
 
 class ModelFabric:
-    def __init__(self, ollama_host: Optional[str] = None, config_path: Optional[str] = None):
-        self.ollama_host = (ollama_host or os.getenv("OLLAMA_HOST") or DEFAULT_OLLAMA).rstrip("/")
-        self.config_path = Path(config_path or os.getenv("OPENCLAW_MODEL_FABRIC") or DEFAULT_CONFIG).expanduser()
+    def __init__(
+        self, ollama_host: Optional[str] = None, config_path: Optional[str] = None
+    ):
+        self.ollama_host = (
+            ollama_host or os.getenv("OLLAMA_HOST") or DEFAULT_OLLAMA
+        ).rstrip("/")
+        self.config_path = Path(
+            config_path or os.getenv("OPENCLAW_MODEL_FABRIC") or DEFAULT_CONFIG
+        ).expanduser()
         self.endpoints: Dict[str, ModelEndpoint] = {}
 
     def register(self, endpoint: ModelEndpoint) -> ModelEndpoint:
@@ -91,17 +100,22 @@ class ModelFabric:
         optional_auth: bool = False,
         headers: Optional[Dict[str, str]] = None,
     ) -> ModelEndpoint:
-        return self.register(ModelEndpoint(
-            endpoint_id=endpoint_id,
-            provider=provider,
-            model=model,
-            base_url=base_url.rstrip("/"),
-            api_key_env=api_key_env,
-            free=free,
-            local=local,
-            capabilities=list(capabilities or ["chat", "reasoning", "code"]),
-            metadata={"optional_auth": bool(optional_auth), "headers": dict(headers or {})},
-        ))
+        return self.register(
+            ModelEndpoint(
+                endpoint_id=endpoint_id,
+                provider=provider,
+                model=model,
+                base_url=base_url.rstrip("/"),
+                api_key_env=api_key_env,
+                free=free,
+                local=local,
+                capabilities=list(capabilities or ["chat", "reasoning", "code"]),
+                metadata={
+                    "optional_auth": bool(optional_auth),
+                    "headers": dict(headers or {}),
+                },
+            )
+        )
 
     def discover_ollama(self, timeout: float = 3.0) -> List[ModelEndpoint]:
         try:
@@ -116,18 +130,24 @@ class ModelFabric:
             if not model:
                 continue
             slug = model.replace("/", "_").replace(":", "_").replace(" ", "_")
-            endpoint = self.register(ModelEndpoint(
-                endpoint_id=f"ollama-{slug}",
-                provider="ollama",
-                model=model,
-                base_url=self.ollama_host,
-                free=True,
-                local=True,
-                capabilities=["chat", "reasoning", "code", "local"],
-                verified=True,
-                status="verified",
-                metadata={"digest": row.get("digest"), "size": row.get("size"), "source": "ollama:/api/tags"},
-            ))
+            endpoint = self.register(
+                ModelEndpoint(
+                    endpoint_id=f"ollama-{slug}",
+                    provider="ollama",
+                    model=model,
+                    base_url=self.ollama_host,
+                    free=True,
+                    local=True,
+                    capabilities=["chat", "reasoning", "code", "local"],
+                    verified=True,
+                    status="verified",
+                    metadata={
+                        "digest": row.get("digest"),
+                        "size": row.get("size"),
+                        "source": "ollama:/api/tags",
+                    },
+                )
+            )
             discovered.append(endpoint)
         return discovered
 
@@ -139,16 +159,25 @@ class ModelFabric:
             headers["Authorization"] = f"Bearer {key}"
         discovered: List[ModelEndpoint] = []
         try:
-            payload = _request_json(f"{KILO_GATEWAY}/models", headers=headers, timeout=timeout)
+            payload = _request_json(
+                f"{KILO_GATEWAY}/models", headers=headers, timeout=timeout
+            )
         except Exception:
             payload = {}
 
-        rows = payload.get("data", payload.get("models", [])) if isinstance(payload, dict) else []
+        rows = (
+            payload.get("data", payload.get("models", []))
+            if isinstance(payload, dict)
+            else []
+        )
         for row in rows if isinstance(rows, list) else []:
             model_id = str(row.get("id") if isinstance(row, dict) else row).strip()
             if not model_id:
                 continue
-            is_free = model_id.endswith(":free") or model_id in {"openrouter/free", "kilo-auto/free"}
+            is_free = model_id.endswith(":free") or model_id in {
+                "openrouter/free",
+                "kilo-auto/free",
+            }
             if not is_free:
                 continue
             slug = model_id.replace("/", "_").replace(":", "_")
@@ -189,35 +218,43 @@ class ModelFabric:
         """Register well-known providers only when their environment is configured."""
         added: List[ModelEndpoint] = []
         if os.getenv("MIMO_API_KEY"):
-            added.append(self.register_openai_compatible(
-                endpoint_id="mimo-api",
-                provider="mimo",
-                model=os.getenv("MIMO_MODEL", "mimo-v2.5-pro"),
-                base_url=os.getenv("MIMO_BASE_URL", "https://api.xiaomimimo.com/v1"),
-                api_key_env="MIMO_API_KEY",
-                free=False,
-                capabilities=["chat", "reasoning", "code", "large-context"],
-            ))
+            added.append(
+                self.register_openai_compatible(
+                    endpoint_id="mimo-api",
+                    provider="mimo",
+                    model=os.getenv("MIMO_MODEL", "mimo-v2.5-pro"),
+                    base_url=os.getenv(
+                        "MIMO_BASE_URL", "https://api.xiaomimimo.com/v1"
+                    ),
+                    api_key_env="MIMO_API_KEY",
+                    free=False,
+                    capabilities=["chat", "reasoning", "code", "large-context"],
+                )
+            )
         if os.getenv("GROQ_API_KEY"):
-            added.append(self.register_openai_compatible(
-                endpoint_id="groq-free",
-                provider="groq",
-                model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
-                base_url="https://api.groq.com/openai/v1",
-                api_key_env="GROQ_API_KEY",
-                free=True,
-                capabilities=["chat", "reasoning", "code", "fast"],
-            ))
+            added.append(
+                self.register_openai_compatible(
+                    endpoint_id="groq-free",
+                    provider="groq",
+                    model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+                    base_url="https://api.groq.com/openai/v1",
+                    api_key_env="GROQ_API_KEY",
+                    free=True,
+                    capabilities=["chat", "reasoning", "code", "fast"],
+                )
+            )
         if os.getenv("OPENROUTER_API_KEY"):
-            added.append(self.register_openai_compatible(
-                endpoint_id="openrouter-free",
-                provider="openrouter",
-                model=os.getenv("OPENROUTER_FREE_MODEL", "openrouter/free"),
-                base_url="https://openrouter.ai/api/v1",
-                api_key_env="OPENROUTER_API_KEY",
-                free=True,
-                capabilities=["chat", "reasoning", "code", "free", "auto-routing"],
-            ))
+            added.append(
+                self.register_openai_compatible(
+                    endpoint_id="openrouter-free",
+                    provider="openrouter",
+                    model=os.getenv("OPENROUTER_FREE_MODEL", "openrouter/free"),
+                    base_url="https://openrouter.ai/api/v1",
+                    api_key_env="OPENROUTER_API_KEY",
+                    free=True,
+                    capabilities=["chat", "reasoning", "code", "free", "auto-routing"],
+                )
+            )
         return added
 
     def load_config(self) -> List[ModelEndpoint]:
@@ -226,7 +263,9 @@ class ModelFabric:
         try:
             payload = json.loads(self.config_path.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
-            raise RuntimeError(f"invalid model fabric config {self.config_path}: {exc}") from exc
+            raise RuntimeError(
+                f"invalid model fabric config {self.config_path}: {exc}"
+            ) from exc
         added: List[ModelEndpoint] = []
         for raw in payload.get("endpoints", []) if isinstance(payload, dict) else []:
             if not isinstance(raw, dict) or raw.get("enabled", True) is False:
@@ -244,7 +283,10 @@ class ModelFabric:
                 api_key_env=str(raw.get("api_key_env") or ""),
                 free=bool(raw.get("free", False)),
                 local=bool(raw.get("local", False)),
-                capabilities=[str(item) for item in raw.get("capabilities", ["chat", "reasoning", "code"])],
+                capabilities=[
+                    str(item)
+                    for item in raw.get("capabilities", ["chat", "reasoning", "code"])
+                ],
                 optional_auth=bool(raw.get("optional_auth", False)),
                 headers={str(k): str(v) for k, v in (raw.get("headers") or {}).items()},
             )
@@ -261,7 +303,9 @@ class ModelFabric:
         return list(self.endpoints.values())
 
     def _auth_headers(self, endpoint: ModelEndpoint) -> Dict[str, str]:
-        headers = {str(k): str(v) for k, v in endpoint.metadata.get("headers", {}).items()}
+        headers = {
+            str(k): str(v) for k, v in endpoint.metadata.get("headers", {}).items()
+        }
         if endpoint.api_key_env:
             key = os.getenv(endpoint.api_key_env, "")
             if key:
@@ -274,14 +318,26 @@ class ModelFabric:
         started = time.perf_counter()
         try:
             if endpoint.provider == "ollama":
-                payload = _request_json(f"{endpoint.base_url}/api/tags", timeout=timeout)
-                models = {str(row.get("name") or row.get("model")) for row in payload.get("models", [])}
+                payload = _request_json(
+                    f"{endpoint.base_url}/api/tags", timeout=timeout
+                )
+                models = {
+                    str(row.get("name") or row.get("model"))
+                    for row in payload.get("models", [])
+                }
                 endpoint.verified = endpoint.model in models
             else:
-                _request_json(f"{endpoint.base_url}/models", headers=self._auth_headers(endpoint), timeout=timeout)
+                _request_json(
+                    f"{endpoint.base_url}/models",
+                    headers=self._auth_headers(endpoint),
+                    timeout=timeout,
+                )
                 endpoint.verified = True
             endpoint.status = "verified" if endpoint.verified else "failed"
-            return {"status": endpoint.status, "latency_ms": round((time.perf_counter() - started) * 1000, 2)}
+            return {
+                "status": endpoint.status,
+                "latency_ms": round((time.perf_counter() - started) * 1000, 2),
+            }
         except Exception as exc:
             endpoint.verified = False
             endpoint.status = "failed"
@@ -309,14 +365,20 @@ class ModelFabric:
                     body={
                         "model": endpoint.model,
                         "messages": [
-                            *([{"role": "system", "content": system}] if system else []),
+                            *(
+                                [{"role": "system", "content": system}]
+                                if system
+                                else []
+                            ),
                             {"role": "user", "content": prompt},
                         ],
                         "stream": False,
                     },
                     timeout=timeout,
                 )
-                message = payload.get("message", {}) if isinstance(payload, dict) else {}
+                message = (
+                    payload.get("message", {}) if isinstance(payload, dict) else {}
+                )
                 text = str(message.get("content") or payload.get("response") or "")
                 endpoint.verified = bool(text.strip())
                 endpoint.status = "verified" if endpoint.verified else "failed"
@@ -348,7 +410,9 @@ class ModelFabric:
                 timeout=timeout,
             )
             choices = payload.get("choices", []) if isinstance(payload, dict) else []
-            text = str(choices[0].get("message", {}).get("content", "")) if choices else ""
+            text = (
+                str(choices[0].get("message", {}).get("content", "")) if choices else ""
+            )
             endpoint.verified = bool(text.strip())
             endpoint.status = "verified" if endpoint.verified else "failed"
             return {
@@ -373,12 +437,39 @@ class ModelFabric:
             }
 
     def free_first(self, *, verified_only: bool = False) -> List[ModelEndpoint]:
-        values = [endpoint for endpoint in self.endpoints.values() if not verified_only or endpoint.verified]
-        return sorted(values, key=lambda item: (not item.free, not item.local, not item.verified, item.provider, item.model))
+        values = [
+            endpoint
+            for endpoint in self.endpoints.values()
+            if not verified_only or endpoint.verified
+        ]
+        return sorted(
+            values,
+            key=lambda item: (
+                not item.free,
+                not item.local,
+                not item.verified,
+                item.provider,
+                item.model,
+            ),
+        )
 
-    def route(self, *, prefer_local: bool = True, free_only: bool = True) -> Optional[ModelEndpoint]:
-        candidates = [endpoint for endpoint in self.endpoints.values() if (endpoint.free or not free_only)]
-        candidates.sort(key=lambda item: (not item.verified, not item.free, (not item.local) if prefer_local else item.local, item.provider, item.model))
+    def route(
+        self, *, prefer_local: bool = True, free_only: bool = True
+    ) -> Optional[ModelEndpoint]:
+        candidates = [
+            endpoint
+            for endpoint in self.endpoints.values()
+            if (endpoint.free or not free_only)
+        ]
+        candidates.sort(
+            key=lambda item: (
+                not item.verified,
+                not item.free,
+                (not item.local) if prefer_local else item.local,
+                item.provider,
+                item.model,
+            )
+        )
         return candidates[0] if candidates else None
 
     def fanout(
@@ -390,19 +481,38 @@ class ModelFabric:
         mode: str = "plan",
         verified_only: bool = True,
     ) -> List[Dict[str, Any]]:
-        candidates = [endpoint for endpoint in self.free_first(verified_only=verified_only) if endpoint.free]
+        candidates = [
+            endpoint
+            for endpoint in self.free_first(verified_only=verified_only)
+            if endpoint.free
+        ]
         if max_agents > 0:
             candidates = candidates[:max_agents]
         if not candidates:
             return []
-        workers = min(len(candidates), max(1, int(os.getenv("OPENCLAW_MAX_PARALLEL_AGENTS", "8"))))
-        with concurrent.futures.ThreadPoolExecutor(max_workers=workers, thread_name_prefix="openclaw-model") as pool:
+        workers = min(
+            len(candidates), max(1, int(os.getenv("OPENCLAW_MAX_PARALLEL_AGENTS", "8")))
+        )
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=workers, thread_name_prefix="openclaw-model"
+        ) as pool:
             future_map = {
-                pool.submit(self.chat, endpoint, prompt, system=system, mode=mode): endpoint.endpoint_id
+                pool.submit(
+                    self.chat, endpoint, prompt, system=system, mode=mode
+                ): endpoint.endpoint_id
                 for endpoint in candidates
             }
-            results = [future.result() for future in concurrent.futures.as_completed(future_map)]
-        return sorted(results, key=lambda item: (item.get("status") != "completed", item.get("latency_ms", 0)))
+            results = [
+                future.result()
+                for future in concurrent.futures.as_completed(future_map)
+            ]
+        return sorted(
+            results,
+            key=lambda item: (
+                item.get("status") != "completed",
+                item.get("latency_ms", 0),
+            ),
+        )
 
 
 __all__ = ["KILO_GATEWAY", "ModelEndpoint", "ModelFabric"]

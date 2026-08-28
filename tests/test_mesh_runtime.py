@@ -4,7 +4,13 @@ import socket
 import threading
 import time
 
-from src.mesh_runtime import MeshIntelligence, MeshNode, MeshTransport, NodeCapability, PersistentKnowledgeStore
+from src.mesh_runtime import (
+    MeshIntelligence,
+    MeshNode,
+    MeshTransport,
+    NodeCapability,
+    PersistentKnowledgeStore,
+)
 
 
 def free_port() -> int:
@@ -16,7 +22,9 @@ def free_port() -> int:
 
 
 def test_local_mesh_is_truthfully_local_without_key(tmp_path):
-    mesh = MeshIntelligence("node-a", shared_key="", state_path=str(tmp_path / "mesh.json"))
+    mesh = MeshIntelligence(
+        "node-a", shared_key="", state_path=str(tmp_path / "mesh.json")
+    )
     assert mesh.network_enabled is False
     assert mesh.get_status()["claim"] == "LOCAL_ONLY_NO_MESH_KEY"
 
@@ -34,7 +42,9 @@ def test_merge_rejects_older_version(tmp_path):
 
     store = PersistentKnowledgeStore("node-a", str(tmp_path / "mesh.json"))
     current = store.set("k", "new")
-    older = KnowledgeEntry("k", "old", "node-b", current.version - 1, current.timestamp + 100)
+    older = KnowledgeEntry(
+        "k", "old", "node-b", current.version - 1, current.timestamp + 100
+    )
     assert store.merge(older) is False
     assert store.get("k") == "new"
 
@@ -63,7 +73,13 @@ def test_authenticated_tcp_transport_delivers_message():
 
 
 def test_route_inference_never_fabricates_output(tmp_path):
-    mesh = MeshIntelligence("node-a", shared_key="", state_path=str(tmp_path / "mesh.json"))
+    mesh = MeshIntelligence(
+        "node-a", shared_key="", state_path=str(tmp_path / "mesh.json")
+    )
     result = mesh.route_inference("hello")
-    assert result == {"status": "NO_VERIFIED_INFERENCE_ROUTE", "routable": False, "model": None}
+    assert result == {
+        "status": "NO_VERIFIED_INFERENCE_ROUTE",
+        "routable": False,
+        "model": None,
+    }
     assert "response" not in result

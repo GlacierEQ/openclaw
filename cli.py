@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """OpenClaw command-line interface."""
+
 from __future__ import annotations
 
 import argparse
@@ -40,21 +41,27 @@ def cmd_action(args):
     params: Dict[str, Any] = json.loads(args.params_json) if args.params_json else {}
     coords = (args.x, args.y) if args.x is not None and args.y is not None else None
     engine = OpenClawEngine(backend=DryRunBackend() if args.dry_run else None)
-    emit(engine.execute_action(
-        args.type,
-        args.target,
-        params,
-        coords,
-        principal=args.principal,
-        source="cli",
-        idempotency_key=args.idempotency_key,
-        human_approved=args.human_approved,
-    ))
+    emit(
+        engine.execute_action(
+            args.type,
+            args.target,
+            params,
+            coords,
+            principal=args.principal,
+            source="cli",
+            idempotency_key=args.idempotency_key,
+            human_approved=args.human_approved,
+        )
+    )
 
 
 def cmd_audit(args):
     engine = OpenClawEngine()
-    emit(engine.verify_audit_trail() if args.verify else engine.get_audit_trail(args.limit))
+    emit(
+        engine.verify_audit_trail()
+        if args.verify
+        else engine.get_audit_trail(args.limit)
+    )
 
 
 def cmd_report(args):
@@ -68,14 +75,17 @@ def cmd_doctor(args):
 def cmd_serve(args):
     import uvicorn
     from server import create_app
+
     uvicorn.run(create_app(watch_dirs=args.dirs), host=args.host, port=args.port)
 
 
 def cmd_mcp(args):
     from mcp_server import OpenClawMCPServer, create_http_app
+
     server = OpenClawMCPServer()
     if args.http:
         import uvicorn
+
         uvicorn.run(create_http_app(server), host=args.host, port=args.port)
     else:
         server.run_stdio()
@@ -110,6 +120,7 @@ def cmd_mesh(args):
 
     if args.mesh_action == "cloud":
         from src.cloud_storage import create_cloud_manager
+
         manager = create_cloud_manager()
         if args.cloud_action in {"add", "configure"}:
             target = {}
@@ -122,7 +133,14 @@ def cmd_mesh(args):
                 credential_env=args.credential_env,
                 target=target,
             )
-            emit({"status": "configured" if ok else "rejected", "provider": args.provider, "credential_env": args.credential_env, "target": target})
+            emit(
+                {
+                    "status": "configured" if ok else "rejected",
+                    "provider": args.provider,
+                    "credential_env": args.credential_env,
+                    "target": target,
+                }
+            )
         elif args.cloud_action == "connect":
             emit(manager.connect_all())
         elif args.cloud_action == "status":
@@ -132,7 +150,9 @@ def cmd_mesh(args):
             emit(manager.sync_knowledge(mesh.store.export()))
         return
 
-    mesh = MeshIntelligence(args.node_id or "kcbflux-mesh", port=getattr(args, "port", 8090) or 8090)
+    mesh = MeshIntelligence(
+        args.node_id or "kcbflux-mesh", port=getattr(args, "port", 8090) or 8090
+    )
     if args.mesh_action == "start":
         mesh.start()
         emit(mesh.get_status())
@@ -145,7 +165,9 @@ def cmd_mesh(args):
         emit(mesh.get_status())
     elif args.mesh_action == "store":
         value = json.loads(args.value) if args.value else {}
-        entry = mesh.store_knowledge(args.key, value, args.tags.split(",") if args.tags else [])
+        entry = mesh.store_knowledge(
+            args.key, value, args.tags.split(",") if args.tags else []
+        )
         emit({"status": "stored", "entry": entry.to_dict()})
     elif args.mesh_action == "get":
         value = mesh.get_knowledge(args.key)
@@ -153,7 +175,10 @@ def cmd_mesh(args):
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="openclaw", description="Controlled automation runtime and integrity watchdog")
+    parser = argparse.ArgumentParser(
+        prog="openclaw",
+        description="Controlled automation runtime and integrity watchdog",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     scan = sub.add_parser("scan", help="Create integrity baseline")
@@ -208,7 +233,9 @@ def build_parser() -> argparse.ArgumentParser:
     agents = sub.add_parser("agents", help="Agent hub")
     agent_sub = agents.add_subparsers(dest="agent_action", required=True)
     agent_list = agent_sub.add_parser("list")
-    agent_list.add_argument("--filter", choices=["all", "local", "verified", "free"], default="all")
+    agent_list.add_argument(
+        "--filter", choices=["all", "local", "verified", "free"], default="all"
+    )
     agent_list.set_defaults(func=cmd_agents)
     agent_test = agent_sub.add_parser("test")
     agent_test.set_defaults(func=cmd_agents)
@@ -247,7 +274,9 @@ def build_parser() -> argparse.ArgumentParser:
     cloud_sub = cloud.add_subparsers(dest="cloud_action", required=True)
     for command_name in ("add", "configure"):
         configure = cloud_sub.add_parser(command_name)
-        configure.add_argument("--provider", choices=["dropbox", "github"], required=True)
+        configure.add_argument(
+            "--provider", choices=["dropbox", "github"], required=True
+        )
         configure.add_argument("--credential-env", required=True)
         configure.add_argument("--repo")
         configure.add_argument("--path")

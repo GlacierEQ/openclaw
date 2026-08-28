@@ -1,4 +1,5 @@
 """Persistent observation state for discovered OpenClaw model endpoints."""
+
 from __future__ import annotations
 
 import json
@@ -29,13 +30,17 @@ class AgentObservationStore:
                     endpoint.verified = observed == "verified"
                 elif isinstance(observed, dict):
                     endpoint.status = str(observed.get("status", endpoint.status))
-                    endpoint.verified = bool(observed.get("verified", endpoint.verified))
+                    endpoint.verified = bool(
+                        observed.get("verified", endpoint.verified)
+                    )
             results = payload.get("test_results", {})
             return results if isinstance(results, dict) else {}
         except (OSError, ValueError, TypeError):
             return {}
 
-    def save(self, endpoints: Dict[str, Any], test_results: Dict[str, Dict[str, Any]]) -> None:
+    def save(
+        self, endpoints: Dict[str, Any], test_results: Dict[str, Dict[str, Any]]
+    ) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "schema": "openclaw.agent-observation-state.v2",
@@ -47,7 +52,9 @@ class AgentObservationStore:
             },
             "test_results": test_results,
         }
-        self.path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        self.path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
 
 __all__ = ["AgentObservationStore"]

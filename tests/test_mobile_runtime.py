@@ -11,7 +11,9 @@ def test_mobile_task_requires_handler():
 
 def test_mobile_registered_handler_completes_task():
     node = MobileNode(DeviceType.TABLET, node_id="tablet-a")
-    node.register_handler("classification", lambda task: {"status": "COMPLETED", "label": "ok"})
+    node.register_handler(
+        "classification", lambda task: {"status": "COMPLETED", "label": "ok"}
+    )
     node.start()
     task = MobileTask("task-2", "classification", "hello")
     assert node.submit_task(task) is True

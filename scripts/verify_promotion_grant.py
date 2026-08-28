@@ -19,13 +19,33 @@ def main() -> int:
     args = parser.parse_args()
 
     state = json.loads(Path(args.grant).read_text())
-    grant = state.get("active_grant") if isinstance(state, dict) and "active_grant" in state else state
+    grant = (
+        state.get("active_grant")
+        if isinstance(state, dict) and "active_grant" in state
+        else state
+    )
     if not grant:
-        print(json.dumps({"ok": False, "error": "NO_ACTIVE_GRANT", "status": state.get("status")}, indent=2, sort_keys=True))
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "NO_ACTIVE_GRANT",
+                    "status": state.get("status"),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
         return 1
 
     ok, error = verify_bound_grant(grant, args.proof)
-    print(json.dumps({"ok": ok, "error": error, "status": state.get("status", "ACTIVE")}, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {"ok": ok, "error": error, "status": state.get("status", "ACTIVE")},
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0 if ok else 1
 
 

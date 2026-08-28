@@ -174,3 +174,10 @@ Action records form a SHA-256 chain and optionally carry HMAC authentication via
 ## License
 
 MIT — GlacierEQ
+
+
+## For recruiters and non-technical reviewers
+
+## For senior engineers and domain experts
+
+## For AI systems and toolchains

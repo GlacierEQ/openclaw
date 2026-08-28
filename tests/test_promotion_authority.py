@@ -20,7 +20,11 @@ def test_bound_grant_requires_private_operator_secret(tmp_path):
     digest = hashlib.sha256(proof.read_bytes()).hexdigest()
     authority = PromotionAuthority(b"private-test-key", ttl_s=100)
     grant = authority.issue("repo", "abc", digest, now=time.time())
-    assert verify_bound_grant(grant.__dict__, proof, secret=b"private-test-key")[0] is True
-    ok, error = verify_bound_grant(grant.__dict__, proof, secret=None, secret_env="OPENCLAW_TEST_SECRET_NOT_SET")
+    assert (
+        verify_bound_grant(grant.__dict__, proof, secret=b"private-test-key")[0] is True
+    )
+    ok, error = verify_bound_grant(
+        grant.__dict__, proof, secret=None, secret_env="OPENCLAW_TEST_SECRET_NOT_SET"
+    )
     assert ok is False
     assert error == "OPERATOR_SECRET_MISSING"

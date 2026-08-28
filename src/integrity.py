@@ -102,7 +102,9 @@ class WatchdogDaemon:
                 digest.update(chunk)
         return digest.hexdigest()
 
-    def _fingerprint(self, path: Path, *, first_seen: Optional[float] = None) -> FileFingerprint:
+    def _fingerprint(
+        self, path: Path, *, first_seen: Optional[float] = None
+    ) -> FileFingerprint:
         stat = path.stat()
         now = time.time()
         return FileFingerprint(
@@ -184,7 +186,15 @@ class WatchdogDaemon:
             new = current[path]
             if old.sha256 != new.sha256:
                 changes.append(
-                    IntegrityEvent("MODIFIED", path, old.sha256, new.sha256, now, "CRITICAL", new.size)
+                    IntegrityEvent(
+                        "MODIFIED",
+                        path,
+                        old.sha256,
+                        new.sha256,
+                        now,
+                        "CRITICAL",
+                        new.size,
+                    )
                 )
             else:
                 new.first_seen = old.first_seen
@@ -265,7 +275,9 @@ class WatchdogDaemon:
             return
         try:
             lines = self.event_log.read_text(encoding="utf-8").splitlines()[-limit:]
-            self.events = [IntegrityEvent(**json.loads(line)) for line in lines if line.strip()]
+            self.events = [
+                IntegrityEvent(**json.loads(line)) for line in lines if line.strip()
+            ]
         except (OSError, ValueError, TypeError):
             self.events = []
 

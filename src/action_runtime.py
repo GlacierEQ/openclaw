@@ -29,7 +29,13 @@ class ActionBackend(Protocol):
 
     def available(self) -> bool: ...
     def supports(self, action_type: str) -> bool: ...
-    def execute(self, action_type: str, target: str, parameters: Dict[str, Any], coords: Optional[Tuple[int, int]]) -> BackendResult: ...
+    def execute(
+        self,
+        action_type: str,
+        target: str,
+        parameters: Dict[str, Any],
+        coords: Optional[Tuple[int, int]],
+    ) -> BackendResult: ...
 
 
 class NullBackend:
@@ -41,8 +47,16 @@ class NullBackend:
     def supports(self, action_type: str) -> bool:
         return False
 
-    def execute(self, action_type: str, target: str, parameters: Dict[str, Any], coords: Optional[Tuple[int, int]]) -> BackendResult:
-        return BackendResult(False, False, self.name, "BACKEND_UNAVAILABLE", {"action_type": action_type})
+    def execute(
+        self,
+        action_type: str,
+        target: str,
+        parameters: Dict[str, Any],
+        coords: Optional[Tuple[int, int]],
+    ) -> BackendResult:
+        return BackendResult(
+            False, False, self.name, "BACKEND_UNAVAILABLE", {"action_type": action_type}
+        )
 
 
 class DryRunBackend:
@@ -54,8 +68,24 @@ class DryRunBackend:
     def supports(self, action_type: str) -> bool:
         return True
 
-    def execute(self, action_type: str, target: str, parameters: Dict[str, Any], coords: Optional[Tuple[int, int]]) -> BackendResult:
-        return BackendResult(True, False, self.name, "PLANNED", {"action_type": action_type, "target": target, "coordinates": list(coords) if coords else None})
+    def execute(
+        self,
+        action_type: str,
+        target: str,
+        parameters: Dict[str, Any],
+        coords: Optional[Tuple[int, int]],
+    ) -> BackendResult:
+        return BackendResult(
+            True,
+            False,
+            self.name,
+            "PLANNED",
+            {
+                "action_type": action_type,
+                "target": target,
+                "coordinates": list(coords) if coords else None,
+            },
+        )
 
 
 class PyAutoGUIBackend:
@@ -63,8 +93,17 @@ class PyAutoGUIBackend:
 
     name = "pyautogui"
     _supported = {
-        "click", "type", "scroll", "navigate", "capture_screenshot", "hover",
-        "drag_and_drop", "shortcut", "key_press", "vision_sample", "ocr_read_screen",
+        "click",
+        "type",
+        "scroll",
+        "navigate",
+        "capture_screenshot",
+        "hover",
+        "drag_and_drop",
+        "shortcut",
+        "key_press",
+        "vision_sample",
+        "ocr_read_screen",
     }
 
     def __init__(self, screenshot_dir: str = ".openclaw/screenshots"):
@@ -72,6 +111,7 @@ class PyAutoGUIBackend:
         self._pg = None
         try:
             import pyautogui  # type: ignore
+
             self._pg = pyautogui
         except Exception:
             self._pg = None
@@ -96,18 +136,32 @@ class PyAutoGUIBackend:
             "bytes": len(raw),
         }
 
-    def execute(self, action_type: str, target: str, parameters: Dict[str, Any], coords: Optional[Tuple[int, int]]) -> BackendResult:
+    def execute(
+        self,
+        action_type: str,
+        target: str,
+        parameters: Dict[str, Any],
+        coords: Optional[Tuple[int, int]],
+    ) -> BackendResult:
         if not self.available():
             return BackendResult(False, False, self.name, "BACKEND_UNAVAILABLE", {})
         if not self.supports(action_type):
-            return BackendResult(False, False, self.name, "UNSUPPORTED_BY_BACKEND", {"action_type": action_type})
+            return BackendResult(
+                False,
+                False,
+                self.name,
+                "UNSUPPORTED_BY_BACKEND",
+                {"action_type": action_type},
+            )
         pg = self._pg
         assert pg is not None
         try:
             if action_type == "click":
                 if coords is None:
                     raise ValueError("click requires coords for desktop backend")
-                pg.click(coords[0], coords[1], button=str(parameters.get("button", "left")))
+                pg.click(
+                    coords[0], coords[1], button=str(parameters.get("button", "left"))
+                )
                 detail = {"coordinates": list(coords)}
             elif action_type == "type":
                 text = parameters.get("text")
@@ -127,7 +181,11 @@ class PyAutoGUIBackend:
             elif action_type == "hover":
                 if coords is None:
                     raise ValueError("hover requires coords for desktop backend")
-                pg.moveTo(coords[0], coords[1], duration=float(parameters.get("duration", 0.0)))
+                pg.moveTo(
+                    coords[0],
+                    coords[1],
+                    duration=float(parameters.get("duration", 0.0)),
+                )
                 detail = {"coordinates": list(coords)}
             elif action_type == "drag_and_drop":
                 if coords is None:
@@ -136,13 +194,24 @@ class PyAutoGUIBackend:
                 if not isinstance(destination, (list, tuple)) or len(destination) != 2:
                     raise ValueError("drag_and_drop requires parameters.to=[x,y]")
                 pg.moveTo(coords[0], coords[1])
-                pg.dragTo(int(destination[0]), int(destination[1]), duration=float(parameters.get("duration", 0.2)))
-                detail = {"from": list(coords), "to": [int(destination[0]), int(destination[1])]}
+                pg.dragTo(
+                    int(destination[0]),
+                    int(destination[1]),
+                    duration=float(parameters.get("duration", 0.2)),
+                )
+                detail = {
+                    "from": list(coords),
+                    "to": [int(destination[0]), int(destination[1])],
+                }
             elif action_type in {"shortcut", "key_press"}:
                 keys = parameters.get("keys")
                 if action_type == "key_press" and not keys:
                     keys = [parameters.get("key") or target]
-                if not isinstance(keys, (list, tuple)) or not keys or not all(isinstance(k, str) and k for k in keys):
+                if (
+                    not isinstance(keys, (list, tuple))
+                    or not keys
+                    or not all(isinstance(k, str) and k for k in keys)
+                ):
                     raise ValueError("shortcut/key_press requires key(s)")
                 if action_type == "shortcut":
                     pg.hotkey(*keys)
@@ -156,14 +225,26 @@ class PyAutoGUIBackend:
                 try:
                     import pytesseract  # type: ignore
                 except Exception:
-                    return BackendResult(False, False, self.name, "OCR_BACKEND_UNAVAILABLE", self._screenshot())
+                    return BackendResult(
+                        False,
+                        False,
+                        self.name,
+                        "OCR_BACKEND_UNAVAILABLE",
+                        self._screenshot(),
+                    )
                 text = pytesseract.image_to_string(image)
                 detail = {"text": text, "characters": len(text), **self._screenshot()}
             else:
                 raise ValueError(action_type)
             return BackendResult(True, True, self.name, "EXECUTED", detail)
         except Exception as exc:
-            return BackendResult(False, False, self.name, "EXECUTION_FAILED", {"error": f"{type(exc).__name__}: {exc}"})
+            return BackendResult(
+                False,
+                False,
+                self.name,
+                "EXECUTION_FAILED",
+                {"error": f"{type(exc).__name__}: {exc}"},
+            )
 
 
 class PlaywrightBackend:
@@ -171,11 +252,26 @@ class PlaywrightBackend:
 
     name = "playwright"
     _supported = {
-        "click", "type", "scroll", "navigate", "inspect_dom", "capture_screenshot",
-        "hover", "drag_and_drop", "shortcut", "key_press", "vision_sample",
+        "click",
+        "type",
+        "scroll",
+        "navigate",
+        "inspect_dom",
+        "capture_screenshot",
+        "hover",
+        "drag_and_drop",
+        "shortcut",
+        "key_press",
+        "vision_sample",
     }
 
-    def __init__(self, *, cdp_url: Optional[str] = None, launch: bool = False, headless: bool = True):
+    def __init__(
+        self,
+        *,
+        cdp_url: Optional[str] = None,
+        launch: bool = False,
+        headless: bool = True,
+    ):
         self.cdp_url = cdp_url
         self.launch = launch
         self.headless = headless
@@ -184,13 +280,18 @@ class PlaywrightBackend:
         self._page = None
         try:
             from playwright.sync_api import sync_playwright  # type: ignore
+
             self._pw = sync_playwright().start()
             if cdp_url:
                 self._browser = self._pw.chromium.connect_over_cdp(cdp_url)
             elif launch:
                 self._browser = self._pw.chromium.launch(headless=headless)
             if self._browser:
-                context = self._browser.contexts[0] if self._browser.contexts else self._browser.new_context()
+                context = (
+                    self._browser.contexts[0]
+                    if self._browser.contexts
+                    else self._browser.new_context()
+                )
                 self._page = context.pages[0] if context.pages else context.new_page()
         except Exception:
             self.close()
@@ -214,24 +315,47 @@ class PlaywrightBackend:
     def supports(self, action_type: str) -> bool:
         return action_type in self._supported
 
-    def execute(self, action_type: str, target: str, parameters: Dict[str, Any], coords: Optional[Tuple[int, int]]) -> BackendResult:
+    def execute(
+        self,
+        action_type: str,
+        target: str,
+        parameters: Dict[str, Any],
+        coords: Optional[Tuple[int, int]],
+    ) -> BackendResult:
         if not self.available():
             return BackendResult(False, False, self.name, "BACKEND_UNAVAILABLE", {})
         if not self.supports(action_type):
-            return BackendResult(False, False, self.name, "UNSUPPORTED_BY_BACKEND", {"action_type": action_type})
+            return BackendResult(
+                False,
+                False,
+                self.name,
+                "UNSUPPORTED_BY_BACKEND",
+                {"action_type": action_type},
+            )
         page = self._page
         try:
             if action_type == "navigate":
-                response = page.goto(target, wait_until=str(parameters.get("wait_until", "domcontentloaded")))
-                detail = {"url": page.url, "http_status": response.status if response else None}
+                response = page.goto(
+                    target,
+                    wait_until=str(parameters.get("wait_until", "domcontentloaded")),
+                )
+                detail = {
+                    "url": page.url,
+                    "http_status": response.status if response else None,
+                }
             elif action_type == "click":
                 if target:
-                    page.click(target, timeout=float(parameters.get("timeout_ms", 10000)))
+                    page.click(
+                        target, timeout=float(parameters.get("timeout_ms", 10000))
+                    )
                 elif coords:
                     page.mouse.click(coords[0], coords[1])
                 else:
                     raise ValueError("click requires selector target or coords")
-                detail = {"selector": target or None, "coordinates": list(coords) if coords else None}
+                detail = {
+                    "selector": target or None,
+                    "coordinates": list(coords) if coords else None,
+                }
             elif action_type == "type":
                 text = parameters.get("text")
                 if not isinstance(text, str):
@@ -252,10 +376,18 @@ class PlaywrightBackend:
                 if not target:
                     raise ValueError("inspect_dom requires selector target")
                 loc = page.locator(target).first
-                detail = loc.evaluate("el => ({tag: el.tagName, text: el.textContent, id: el.id, className: el.className, role: el.getAttribute('role')})")
+                detail = loc.evaluate(
+                    "el => ({tag: el.tagName, text: el.textContent, id: el.id, className: el.className, role: el.getAttribute('role')})"
+                )
             elif action_type in {"capture_screenshot", "vision_sample"}:
-                raw = page.screenshot(full_page=bool(parameters.get("full_page", False)))
-                detail = {"sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw), "url": page.url}
+                raw = page.screenshot(
+                    full_page=bool(parameters.get("full_page", False))
+                )
+                detail = {
+                    "sha256": hashlib.sha256(raw).hexdigest(),
+                    "bytes": len(raw),
+                    "url": page.url,
+                }
             elif action_type == "hover":
                 if not target:
                     raise ValueError("hover requires selector target")
@@ -264,7 +396,9 @@ class PlaywrightBackend:
             elif action_type == "drag_and_drop":
                 destination = parameters.get("to")
                 if not target or not isinstance(destination, str) or not destination:
-                    raise ValueError("drag_and_drop requires source target and parameters.to selector")
+                    raise ValueError(
+                        "drag_and_drop requires source target and parameters.to selector"
+                    )
                 page.drag_and_drop(target, destination)
                 detail = {"source": target, "destination": destination}
             elif action_type in {"shortcut", "key_press"}:
@@ -281,7 +415,13 @@ class PlaywrightBackend:
                 raise ValueError(action_type)
             return BackendResult(True, True, self.name, "EXECUTED", detail)
         except Exception as exc:
-            return BackendResult(False, False, self.name, "EXECUTION_FAILED", {"error": f"{type(exc).__name__}: {exc}"})
+            return BackendResult(
+                False,
+                False,
+                self.name,
+                "EXECUTION_FAILED",
+                {"error": f"{type(exc).__name__}: {exc}"},
+            )
 
 
 class SlidingWindowRateLimiter:
@@ -316,16 +456,27 @@ def choose_backend(config: Dict[str, Any]) -> ActionBackend:
     cdp_url = os.getenv(cdp_env) or None
     launch_browser = bool(execution.get("launch_browser", False))
     if requested in {"auto", "playwright", "browser"} and (cdp_url or launch_browser):
-        backend = PlaywrightBackend(cdp_url=cdp_url, launch=launch_browser, headless=bool(execution.get("browser_headless", True)))
+        backend = PlaywrightBackend(
+            cdp_url=cdp_url,
+            launch=launch_browser,
+            headless=bool(execution.get("browser_headless", True)),
+        )
         if backend.available():
             return backend
         if requested != "auto":
             return backend
 
     local_gui_env = str(execution.get("local_gui_env", "OPENCLAW_LOCAL_GUI"))
-    local_gui_enabled = os.getenv(local_gui_env, "").lower() in {"1", "true", "yes", "on"}
+    local_gui_enabled = os.getenv(local_gui_env, "").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
     if requested in {"auto", "pyautogui", "desktop"} and local_gui_enabled:
-        backend = PyAutoGUIBackend(str(execution.get("screenshot_dir", ".openclaw/screenshots")))
+        backend = PyAutoGUIBackend(
+            str(execution.get("screenshot_dir", ".openclaw/screenshots"))
+        )
         if backend.available() or requested != "auto":
             return backend
 

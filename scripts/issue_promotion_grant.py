@@ -16,7 +16,9 @@ from src.promotion_authority import PromotionAuthority
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Issue a short-lived OpenClaw promotion grant")
+    parser = argparse.ArgumentParser(
+        description="Issue a short-lived OpenClaw promotion grant"
+    )
     parser.add_argument("--proof", default="machine/proof_receipt.json")
     parser.add_argument("--output", default="machine/promotion_authority.json")
     parser.add_argument("--ttl", type=float, default=3600.0)
@@ -24,7 +26,11 @@ def main() -> int:
 
     secret_value = os.getenv("OPENCLAW_PROMOTION_SECRET")
     if not secret_value:
-        print(json.dumps({"ok": False, "error": "OPENCLAW_PROMOTION_SECRET_NOT_SET"}, indent=2))
+        print(
+            json.dumps(
+                {"ok": False, "error": "OPENCLAW_PROMOTION_SECRET_NOT_SET"}, indent=2
+            )
+        )
         return 1
 
     proof_path = Path(args.proof)
@@ -45,10 +51,21 @@ def main() -> int:
         "active_grant": grant.__dict__,
         "grant_fingerprint": grant.fingerprint(),
         "required_secret_env": "OPENCLAW_PROMOTION_SECRET",
-        "issued_at": time.time()
+        "issued_at": time.time(),
     }
     Path(args.output).write_text(json.dumps(state, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({"ok": True, "output": args.output, "grant_fingerprint": grant.fingerprint(), "not_after": grant.not_after}, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "output": args.output,
+                "grant_fingerprint": grant.fingerprint(),
+                "not_after": grant.not_after,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 

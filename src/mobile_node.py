@@ -5,6 +5,7 @@ Capabilities are reported only when observed or explicitly configured. Tasks are
 completed only by registered handlers; the module never fabricates model output
 or hardware throughput from an operating-system name.
 """
+
 from __future__ import annotations
 
 import json
@@ -72,7 +73,13 @@ class MobileCapability:
                 budget *= 0.5
         if self.is_charging is True:
             budget *= 1.25
-        budget *= {"normal": 1.0, "warm": 0.7, "hot": 0.3, "critical": 0.1, "unknown": 1.0}.get(self.thermal_state, 1.0)
+        budget *= {
+            "normal": 1.0,
+            "warm": 0.7,
+            "hot": 0.3,
+            "critical": 0.1,
+            "unknown": 1.0,
+        }.get(self.thermal_state, 1.0)
         return max(0.0, min(1.25, budget))
 
 
@@ -120,8 +127,15 @@ def _optional_bool(env: str) -> Optional[bool]:
 
 
 class MobileNode:
-    def __init__(self, device_type: DeviceType = DeviceType.PHONE, *, node_id: Optional[str] = None):
-        self.node_id = node_id or f"mobile-{socket.gethostname()[:12]}-{uuid.uuid4().hex[:8]}"
+    def __init__(
+        self,
+        device_type: DeviceType = DeviceType.PHONE,
+        *,
+        node_id: Optional[str] = None,
+    ):
+        self.node_id = (
+            node_id or f"mobile-{socket.gethostname()[:12]}-{uuid.uuid4().hex[:8]}"
+        )
         self.device_type = device_type
         self.capability = self._detect_capability()
         self.connected = False
@@ -136,7 +150,11 @@ class MobileNode:
             chip = NPUChip(chip_name)
         except ValueError:
             chip = NPUChip.UNKNOWN
-        models = [item.strip() for item in os.getenv("OPENCLAW_MOBILE_MODELS", "").split(",") if item.strip()]
+        models = [
+            item.strip()
+            for item in os.getenv("OPENCLAW_MOBILE_MODELS", "").split(",")
+            if item.strip()
+        ]
         return MobileCapability(
             device_type=self.device_type,
             platform_name=platform.system(),
@@ -162,22 +180,42 @@ class MobileNode:
             model = task.model or os.getenv("OPENCLAW_MOBILE_DEFAULT_MODEL", "")
             if not model:
                 return {"status": "FAILED", "error": "MODEL_NOT_CONFIGURED"}
-            body = json.dumps({"model": model, "prompt": task.prompt, "stream": False}).encode("utf-8")
+            body = json.dumps(
+                {"model": model, "prompt": task.prompt, "stream": False}
+            ).encode("utf-8")
             request = urllib.request.Request(
                 f"{endpoint}/api/generate",
                 data=body,
-                headers={"Content-Type": "application/json", "User-Agent": "OpenClaw-Mobile/3.1"},
+                headers={
+                    "Content-Type": "application/json",
+                    "User-Agent": "OpenClaw-Mobile/3.1",
+                },
                 method="POST",
             )
             started = time.perf_counter()
             try:
-                with urllib.request.urlopen(request, timeout=max(1.0, task.max_latency_ms / 1000.0)) as response:
+                with urllib.request.urlopen(
+                    request, timeout=max(1.0, task.max_latency_ms / 1000.0)
+                ) as response:
                     payload = json.loads(response.read().decode("utf-8"))
-            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError) as exc:
-                return {"status": "FAILED", "error": str(exc), "latency_ms": (time.perf_counter() - started) * 1000.0}
+            except (
+                urllib.error.URLError,
+                urllib.error.HTTPError,
+                TimeoutError,
+                ValueError,
+            ) as exc:
+                return {
+                    "status": "FAILED",
+                    "error": str(exc),
+                    "latency_ms": (time.perf_counter() - started) * 1000.0,
+                }
             text = str(payload.get("response", ""))
             if not text.strip():
-                return {"status": "FAILED", "error": "EMPTY_RESPONSE", "latency_ms": (time.perf_counter() - started) * 1000.0}
+                return {
+                    "status": "FAILED",
+                    "error": "EMPTY_RESPONSE",
+                    "latency_ms": (time.perf_counter() - started) * 1000.0,
+                }
             return {
                 "status": "COMPLETED",
                 "response": text,
@@ -186,6 +224,7 @@ class MobileNode:
                 "eval_count": payload.get("eval_count"),
                 "eval_duration": payload.get("eval_duration"),
             }
+
         return handle
 
     def register_handler(self, task_type: str, handler: TaskHandler) -> None:
@@ -208,10 +247,20 @@ class MobileNode:
 
     def process_task(self, task: MobileTask) -> Dict[str, Any]:
         if not self.connected:
-            return {"task_id": task.task_id, "node_id": self.node_id, "status": "REJECTED", "error": "NODE_NOT_RUNNING"}
+            return {
+                "task_id": task.task_id,
+                "node_id": self.node_id,
+                "status": "REJECTED",
+                "error": "NODE_NOT_RUNNING",
+            }
         handler = self.handlers.get(task.task_type)
         if handler is None:
-            return {"task_id": task.task_id, "node_id": self.node_id, "status": "UNSUPPORTED", "error": "NO_TASK_HANDLER"}
+            return {
+                "task_id": task.task_id,
+                "node_id": self.node_id,
+                "status": "UNSUPPORTED",
+                "error": "NO_TASK_HANDLER",
+            }
         started = time.perf_counter()
         try:
             result = dict(handler(task))
@@ -255,7 +304,11 @@ class MobileMeshManager:
         self.nodes.pop(node_id, None)
 
     def get_best_node(self, task_type: str = "inference") -> Optional[MobileNode]:
-        candidates = [node for node in self.nodes.values() if node.connected and task_type in node.handlers]
+        candidates = [
+            node
+            for node in self.nodes.values()
+            if node.connected and task_type in node.handlers
+        ]
         if not candidates:
             return None
         return sorted(
@@ -276,7 +329,9 @@ class MobileMeshManager:
         return {
             "total_nodes": len(self.nodes),
             "running_nodes": sum(node.connected for node in self.nodes.values()),
-            "nodes": {node_id: node.get_status() for node_id, node in self.nodes.items()},
+            "nodes": {
+                node_id: node.get_status() for node_id, node in self.nodes.items()
+            },
         }
 
 
@@ -292,7 +347,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="OpenClaw mobile compute node")
-    parser.add_argument("--device", choices=[item.value for item in DeviceType], default="phone")
+    parser.add_argument(
+        "--device", choices=[item.value for item in DeviceType], default="phone"
+    )
     parser.add_argument("--status", action="store_true")
     args = parser.parse_args()
     node = MobileNode(DeviceType(args.device))

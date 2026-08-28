@@ -16,11 +16,19 @@ class RecordingBackend:
         return action_type in {"click", "type", "vision_sample"}
 
     def execute(self, action_type, target, parameters, coords):
-        return BackendResult(True, True, self.name, "EXECUTED", {"action_type": action_type, "coords": coords})
+        return BackendResult(
+            True,
+            True,
+            self.name,
+            "EXECUTED",
+            {"action_type": action_type, "coords": coords},
+        )
 
 
 def test_execution_requires_backend_receipt(tmp_path):
-    engine = OpenClawEngine(backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     result = engine.execute_action("click", "button.submit", coords=(10, 20))
     assert result["status"] == "OPENCLAW_ACTION_EXECUTED"
     assert result["executed"] is True
@@ -28,7 +36,9 @@ def test_execution_requires_backend_receipt(tmp_path):
 
 
 def test_missing_backend_fails_closed(tmp_path):
-    engine = OpenClawEngine(backend=NullBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=NullBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     result = engine.execute_action("click", "button.submit", coords=(10, 20))
     assert result["status"] == "OPENCLAW_BACKEND_UNAVAILABLE"
     assert result["executed"] is False
@@ -40,14 +50,18 @@ def test_missing_backend_fails_closed(tmp_path):
 
 
 def test_policy_denial_is_not_execution(tmp_path):
-    engine = OpenClawEngine(backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     result = engine.execute_action("not_in_policy", "target")
     assert result["status"] == "DENIED_BY_AKOS_POLICY"
     assert result["executed"] is False
 
 
 def test_idempotency_prevents_duplicate_execution(tmp_path):
-    engine = OpenClawEngine(backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     first = engine.execute_action("click", "a", coords=(1, 2), idempotency_key="same")
     second = engine.execute_action("click", "a", coords=(1, 2), idempotency_key="same")
     assert first["status"] == "OPENCLAW_ACTION_EXECUTED"
@@ -56,7 +70,9 @@ def test_idempotency_prevents_duplicate_execution(tmp_path):
 
 
 def test_sensitive_text_is_redacted_from_audit(tmp_path):
-    engine = OpenClawEngine(backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     engine.execute_action("type", "#field", {"text": "example-sensitive-value"})
     serialized = (tmp_path / "audit.jsonl").read_text()
     assert "example-sensitive-value" not in serialized
@@ -65,7 +81,9 @@ def test_sensitive_text_is_redacted_from_audit(tmp_path):
 
 
 def test_vision_result_is_backend_observed(tmp_path):
-    engine = OpenClawEngine(backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl"))
+    engine = OpenClawEngine(
+        backend=RecordingBackend(), audit_file=str(tmp_path / "audit.jsonl")
+    )
     result = engine.sample_vision_state((800, 600))
     assert result["status"] == "OPENCLAW_ACTION_EXECUTED"
     assert result["viewport_dimensions"] == [800, 600]

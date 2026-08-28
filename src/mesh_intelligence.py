@@ -1,4 +1,5 @@
 """Compatibility exports for the canonical OpenClaw mesh runtime."""
+
 from .mesh_runtime import (
     KnowledgeEntry,
     MeshIntelligence,

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """OpenClaw REST control plane with authenticated mutation endpoints."""
+
 from __future__ import annotations
 
 import hmac
@@ -40,13 +41,23 @@ def _bearer_token(authorization: Optional[str]) -> Optional[str]:
     return value if scheme.lower() == "bearer" and value else None
 
 
-def create_app(*, engine: Optional[OpenClawEngine] = None, daemon: Optional[WatchdogDaemon] = None, watch_dirs: Optional[List[str]] = None, require_token: Optional[bool] = None) -> FastAPI:
+def create_app(
+    *,
+    engine: Optional[OpenClawEngine] = None,
+    daemon: Optional[WatchdogDaemon] = None,
+    watch_dirs: Optional[List[str]] = None,
+    require_token: Optional[bool] = None,
+) -> FastAPI:
     engine = engine or OpenClawEngine()
     daemon = daemon or WatchdogDaemon(watch_dirs=watch_dirs or ["."])
     if not daemon.fingerprints:
         daemon.initial_scan()
     api_cfg = engine.config.get("api", {})
-    token_required = bool(api_cfg.get("require_token", True)) if require_token is None else bool(require_token)
+    token_required = (
+        bool(api_cfg.get("require_token", True))
+        if require_token is None
+        else bool(require_token)
+    )
     token_env = str(api_cfg.get("token_env", "OPENCLAW_API_TOKEN"))
 
     app = FastAPI(title="OpenClaw", version=str(engine.config.get("version", "3.1.0")))
@@ -60,14 +71,24 @@ def create_app(*, engine: Optional[OpenClawEngine] = None, daemon: Optional[Watc
             return
         expected = os.getenv(app.state.token_env, "")
         if not expected:
-            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=f"{app.state.token_env} not configured")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=f"{app.state.token_env} not configured",
+            )
         supplied = _bearer_token(authorization)
         if supplied is None or not hmac.compare_digest(supplied, expected):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid bearer token"
+            )
 
     @app.get("/health")
     def health() -> Dict[str, Any]:
-        return {"service": "openclaw-api", "engine": app.state.engine.health(), "integrity": app.state.daemon.get_report(), "mutation_auth_required": app.state.require_token}
+        return {
+            "service": "openclaw-api",
+            "engine": app.state.engine.health(),
+            "integrity": app.state.daemon.get_report(),
+            "mutation_auth_required": app.state.require_token,
+        }
 
     @app.get("/integrity/status")
     def integrity_status() -> Dict[str, Any]:
@@ -82,7 +103,9 @@ def create_app(*, engine: Optional[OpenClawEngine] = None, daemon: Optional[Watc
         return app.state.daemon.initial_scan()
 
     @app.post("/integrity/add-watch")
-    def add_watch(body: WatchRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+    def add_watch(
+        body: WatchRequest, _: None = Depends(authorize_mutation)
+    ) -> Dict[str, Any]:
         path = Path(body.directory).expanduser().resolve()
         if path in app.state.daemon.watch_dirs:
             return {"status": "already_watching", "directory": str(path)}
@@ -101,15 +124,35 @@ def create_app(*, engine: Optional[OpenClawEngine] = None, daemon: Optional[Watc
         return app.state.engine.health()
 
     @app.post("/engine/action")
-    def engine_action(body: ActionRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
-        result = app.state.engine.execute_action(action_type=body.action_type, target=body.target, parameters=body.parameters, coords=body.coords, principal=body.principal, source=body.source, idempotency_key=body.idempotency_key, human_approved=body.human_approved)
-        code = {"OPENCLAW_BACKEND_UNAVAILABLE": 503, "RATE_LIMITED": 429, "DENIED_BY_AKOS_POLICY": 403, "HUMAN_APPROVAL_REQUIRED": 403, "UNSUPPORTED_BY_BACKEND": 403, "OPENCLAW_ACTION_FAILED": 502}.get(result.get("status"))
+    def engine_action(
+        body: ActionRequest, _: None = Depends(authorize_mutation)
+    ) -> Dict[str, Any]:
+        result = app.state.engine.execute_action(
+            action_type=body.action_type,
+            target=body.target,
+            parameters=body.parameters,
+            coords=body.coords,
+            principal=body.principal,
+            source=body.source,
+            idempotency_key=body.idempotency_key,
+            human_approved=body.human_approved,
+        )
+        code = {
+            "OPENCLAW_BACKEND_UNAVAILABLE": 503,
+            "RATE_LIMITED": 429,
+            "DENIED_BY_AKOS_POLICY": 403,
+            "HUMAN_APPROVAL_REQUIRED": 403,
+            "UNSUPPORTED_BY_BACKEND": 403,
+            "OPENCLAW_ACTION_FAILED": 502,
+        }.get(result.get("status"))
         if code:
             raise HTTPException(status_code=code, detail=result)
         return result
 
     @app.post("/engine/vision")
-    def engine_vision(body: VisionRequest, _: None = Depends(authorize_mutation)) -> Dict[str, Any]:
+    def engine_vision(
+        body: VisionRequest, _: None = Depends(authorize_mutation)
+    ) -> Dict[str, Any]:
         return app.state.engine.sample_vision_state(body.viewport)
 
     return app
@@ -121,6 +164,7 @@ app = create_app()
 def main() -> None:
     import argparse
     import uvicorn
+
     parser = argparse.ArgumentParser(description="OpenClaw API server")
     parser.add_argument("--host", default=None)
     parser.add_argument("--port", type=int, default=None)
@@ -130,7 +174,11 @@ def main() -> None:
         app.state.daemon = WatchdogDaemon(watch_dirs=args.watch_dirs)
         app.state.daemon.initial_scan()
     cfg = app.state.engine.config.get("api", {})
-    uvicorn.run(app, host=args.host or str(cfg.get("host", "127.0.0.1")), port=args.port or int(cfg.get("port", 8088)))
+    uvicorn.run(
+        app,
+        host=args.host or str(cfg.get("host", "127.0.0.1")),
+        port=args.port or int(cfg.get("port", 8088)),
+    )
 
 
 if __name__ == "__main__":
