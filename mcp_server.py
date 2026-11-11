@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from src.integrity import WatchdogDaemon
 from src.openclaw import OpenClawEngine
+from src.version import SOURCE_VERSION
 from src.agent_hub import FreeTierAgentHub
 
 
@@ -183,7 +184,7 @@ class OpenClawMCPServer:
                     "capabilities": {"tools": {"listChanged": False}},
                     "serverInfo": {
                         "name": "glaciereq-openclaw",
-                        "version": str(self.engine.config.get("version", "3.1.0")),
+                        "version": str(self.engine.config.get("version", SOURCE_VERSION)),
                     },
                 },
             }
@@ -332,7 +333,7 @@ def create_http_app(server=None):
 
     server = server or OpenClawMCPServer()
     app = FastAPI(
-        title="OpenClaw MCP", version=str(server.engine.config.get("version", "3.1.0"))
+        title="OpenClaw MCP", version=str(server.engine.config.get("version", SOURCE_VERSION))
     )
     cfg = server.engine.config.get("mcp", {})
     token_env = str(cfg.get("token_env", "OPENCLAW_MCP_TOKEN"))
